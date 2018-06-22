@@ -1,9 +1,9 @@
 local version = std.extVar("VERSION");
 local project = std.extVar("PROJECT");
-local registry = std.extVar("REGISTRY");
+local registry_prefix = std.extVar("REGISTRY_PREFIX");
 {
   image(name)::
-    registry + "/" + project + "/" + name + ":" + version,
+    registry_prefix + project + "/" + name + ":" + version,
     
   address_space_controller::
     self.image(std.extVar("ADDRESS_SPACE_CONTROLLER_IMAGE")),

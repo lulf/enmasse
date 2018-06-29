@@ -262,9 +262,8 @@ public class KubernetesHelper implements Kubernetes {
 
     private void createRoleBinding(String name, String namespace, String refKind, String refName, List<Subject> subjectList) {
 
-        Boolean isOpenShift = client.isAdaptable(OpenShiftClient.class);
-        String apiVersion = isOpenShift ? "v1" : "rbac.authorization.k8s.io/v1";
-        String apiPath = isOpenShift ? "/oapi/v1" : "/apis/rbac.authorization.k8s.io/v1";
+        String apiVersion = "rbac.authorization.k8s.io/v1";
+        String apiPath = "/apis/rbac.authorization.k8s.io/v1";
 
         JsonObject body = new JsonObject();
 
@@ -286,9 +285,6 @@ public class KubernetesHelper implements Kubernetes {
 
         for (Subject subjectEntry : subjectList) {
             JsonObject subject = new JsonObject();
-            if (isOpenShift) {
-                subject.put("apiGroup", "rbac.authorization.k8s.io");
-            }
             subject.put("kind", subjectEntry.getKind());
             subject.put("name", subjectEntry.getName());
             if (subjectEntry.getNamespace() != null) {
@@ -344,11 +340,6 @@ public class KubernetesHelper implements Kubernetes {
         } else {
             log.info("No support for RBAC, won't add to address-admin role");
         }
-    }
-
-    private boolean hasClusterRole(String roleName) {
-        String apiPath = client.isAdaptable(OpenShiftClient.class) ? "/oapi/v1" : "/apis/rbac.authorization.k8s.io/v1";
-        return doRawHttpRequest(apiPath + "/clusterroles/" + roleName, "GET", null, true, null) != null;
     }
 
     private static boolean isReady(Deployment deployment) {

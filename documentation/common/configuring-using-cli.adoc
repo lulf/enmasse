@@ -2,9 +2,8 @@
 
 == Configuring {ProductName} using the command line
 
-{ProductName} can be configured to support manipulating address spaces and addresses using the
-Kubernetes and OpenShift command-line tools. See xref:register-api-service-okd[] for how to setup the API
-server to support this if you have not already configured your installation with it.
+{ProductName} is configured to support manipulating address spaces and addresses using the
+Kubernetes and OpenShift command-line tools. 
 
 === Creating an Address Space
 

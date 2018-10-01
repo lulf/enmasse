@@ -74,12 +74,14 @@ public class ApiServer extends AbstractVerticle {
 
         String clientCa = null;
         String requestHeaderClientCa = null;
-        try {
-            ConfigMap extensionApiserverAuthentication = client.configMaps().inNamespace(options.getApiserverClientCaConfigNamespace()).withName(options.getApiserverClientCaConfigName()).get();
-            clientCa = extensionApiserverAuthentication.getData().get("client-ca.file");
-            requestHeaderClientCa = extensionApiserverAuthentication.getData().get("requestheader-client-ca-file");
-        } catch (KubernetesClientException e) {
-            log.info("Unable to retrieve config for client CA. Skipping", e);
+        if (options.isEnableRbac()) {
+            try {
+                ConfigMap extensionApiserverAuthentication = client.configMaps().inNamespace(options.getApiserverClientCaConfigNamespace()).withName(options.getApiserverClientCaConfigName()).get();
+                clientCa = extensionApiserverAuthentication.getData().get("client-ca.file");
+                requestHeaderClientCa = extensionApiserverAuthentication.getData().get("requestheader-client-ca-file");
+            } catch (KubernetesClientException e) {
+                log.info("Unable to retrieve config for client CA. Skipping", e);
+            }
         }
 
         HTTPServer httpServer = new HTTPServer(addressSpaceApi, schemaProvider, options.getCertDir(), clientCa, requestHeaderClientCa, authApi, userApi, options.isEnableRbac());

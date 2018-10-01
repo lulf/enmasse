@@ -53,7 +53,7 @@ public class StandardController {
         schemaApi.watchSchema(schemaProvider, resyncInterval);
 
         Kubernetes kubernetes = new KubernetesHelper(openShiftClient, templateDir, infraUuid);
-        BrokerSetGenerator clusterGenerator = new TemplateBrokerSetGenerator(kubernetes, templateOptions, addressSpace, infraUuid);
+        BrokerSetGenerator clusterGenerator = new TemplateBrokerSetGenerator(kubernetes, templateOptions, addressSpace, infraUuid, schemaProvider);
 
         boolean enableEventLogger = Boolean.parseBoolean(getEnv(env, "ENABLE_EVENT_LOGGER").orElse("false"));
         EventLogger eventLogger = enableEventLogger ? new KubeEventLogger(openShiftClient, openShiftClient.getNamespace(), Clock.systemUTC(), "standard-controller")

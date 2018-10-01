@@ -2,47 +2,77 @@
  * Copyright 2018, EnMasse authors.
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
-package io.enmasse.address.model;
+package io.enmasse.admin.model.v1;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AddressSpacePlan {
-    private final String name;
+    @JsonProperty("apiVersion")
+    private final String apiVersion = "admin.enmasse.io/v1alpha1";
+    @JsonProperty("kind")
+    private final String kind = "AddressSpacePlan";
+
+    private final ObjectMetadata metadata;
+
     private final String displayName;
     private final int displayOrder;
     private final String shortDescription;
     private final String longDescription;
     private final String uuid;
     private final String addressSpaceType;
-    private final List<ResourceAllowance> allowedResources;
+    private final List<ResourceAllowance> resources;
     private final List<String> addressPlans;
-    private final Map<String, String> annotations;
 
-    private AddressSpacePlan(String name, String displayName, int displayOrder, String shortDescription, String longDescription, String uuid, String addressSpaceType, List<ResourceAllowance> allowedResources, List<String> addressPlans, Map<String, String> annotations) {
-        this.name = name;
+    @JsonCreator
+    private AddressSpacePlan(@JsonProperty("metadata") ObjectMetadata metadata,
+                             @JsonProperty("displayName") String displayName,
+                             @JsonProperty("displayOrder") int displayOrder,
+                             @JsonProperty("shortDescription") String shortDescription,
+                             @JsonProperty("longDescription") String longDescription,
+                             @JsonProperty("uuid") String uuid,
+                             @JsonProperty("addressSpaceType") String addressSpaceType,
+                             @JsonProperty("resources") List<ResourceAllowance> resources,
+                             @JsonProperty("addressPlans") List<String> addressPlans) {
+        if (displayName == null) {
+            displayName = metadata.getName();
+        }
+        if (shortDescription == null) {
+            shortDescription = displayName;
+        }
+        if (longDescription == null) {
+            longDescription = shortDescription;
+        }
+        if (uuid == null) {
+            uuid = UUID.nameUUIDFromBytes(metadata.getName().getBytes(StandardCharsets.UTF_8)).toString();
+        }
+        this.metadata = metadata;
         this.displayName = displayName;
         this.displayOrder = displayOrder;
         this.shortDescription = shortDescription;
         this.longDescription = longDescription;
         this.uuid = uuid;
         this.addressSpaceType = addressSpaceType;
-        this.allowedResources = allowedResources;
+        this.resources = resources;
         this.addressPlans = addressPlans;
-        this.annotations = annotations;
     }
 
 
     public List<ResourceAllowance> getResources() {
-        return Collections.unmodifiableList(allowedResources);
+        return Collections.unmodifiableList(resources);
     }
 
     public List<String> getAddressPlans() {
         return Collections.unmodifiableList(addressPlans);
     }
 
-    public String getName() {
-        return name;
+    public ObjectMetadata getMetadata() {
+        return metadata;
     }
 
     public String getDisplayName() {
@@ -69,8 +99,11 @@ public class AddressSpacePlan {
         return uuid;
     }
 
-    public Map<String, String> getAnnotations() {
-        return Collections.unmodifiableMap(annotations);
+    public void validate() {
+        Objects.requireNonNull(displayName);
+        Objects.requireNonNull(shortDescription);
+        Objects.requireNonNull(longDescription);
+        Objects.requireNonNull(uuid);
     }
 
     @Override
@@ -80,13 +113,13 @@ public class AddressSpacePlan {
 
         AddressSpacePlan that = (AddressSpacePlan) o;
 
-        if (!name.equals(that.name)) return false;
+        if (!metadata.equals(that.metadata)) return false;
         return uuid.equals(that.uuid);
     }
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
+        int result = metadata.hashCode();
         result = 31 * result + uuid.hashCode();
         return result;
     }
@@ -94,15 +127,15 @@ public class AddressSpacePlan {
     @Override
     public String toString() {
         return "AddressSpacePlan{" +
-                "name='" + name + '\'' +
+                "metadata='" + metadata+ '\'' +
                 ", uuid='" + uuid + '\'' +
-                ", allowedResources=" + allowedResources +
+                ", resources=" + resources +
                 ", addressPlans=" + addressPlans +
                 '}';
     }
 
     public static class Builder {
-        private String name;
+        private ObjectMetadata metadata;
         private String displayName;
         private int displayOrder;
         private String shortDescription;
@@ -111,10 +144,9 @@ public class AddressSpacePlan {
         private String addressSpaceType;
         private List<ResourceAllowance> allowedResources;
         private List<String> addressPlans;
-        private Map<String, String> annotations = new HashMap<>();
 
-        public Builder setName(String name) {
-            this.name = name;
+        public Builder setMetadata(ObjectMetadata metadata) {
+            this.metadata = metadata;
             return this;
         }
 
@@ -158,39 +190,13 @@ public class AddressSpacePlan {
             return this;
         }
 
-        public Builder setAnnotations(Map<String, String> annotations) {
-            this.annotations = new HashMap<>(annotations);
-            return this;
-        }
-
-        private void setDefaults() {
-            if (displayName == null) {
-                displayName = name;
-            }
-            if (shortDescription == null) {
-                shortDescription = displayName;
-            }
-            if (longDescription == null) {
-                longDescription = shortDescription;
-            }
-            if (uuid == null) {
-                uuid = UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)).toString();
-            }
-        }
-
         public AddressSpacePlan build() {
-            setDefaults();
-            Objects.requireNonNull(name);
-            Objects.requireNonNull(displayName);
-            Objects.requireNonNull(shortDescription);
-            Objects.requireNonNull(longDescription);
-            Objects.requireNonNull(uuid);
+            Objects.requireNonNull(metadata);
             Objects.requireNonNull(addressSpaceType);
             Objects.requireNonNull(allowedResources);
             Objects.requireNonNull(addressPlans);
-            Objects.requireNonNull(annotations);
 
-            return new AddressSpacePlan(name, displayName, displayOrder, shortDescription, longDescription, uuid, addressSpaceType, allowedResources, addressPlans, annotations);
+            return new AddressSpacePlan(metadata, displayName, displayOrder, shortDescription, longDescription, uuid, addressSpaceType, allowedResources, addressPlans);
         }
     }
 }

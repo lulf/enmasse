@@ -7,6 +7,7 @@ package io.enmasse.controller.standard;
 import static io.enmasse.controller.standard.ControllerKind.Broker;
 import static io.enmasse.controller.standard.ControllerReason.BrokerCreateFailed;
 import static io.enmasse.controller.standard.ControllerReason.BrokerCreated;
+import static io.enmasse.controller.standard.ControllerReason.BrokerUpgraded;
 import static io.enmasse.k8s.api.EventLogger.Type.Normal;
 import static io.enmasse.k8s.api.EventLogger.Type.Warning;
 
@@ -23,24 +24,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
+import io.enmasse.address.model.*;
+import io.enmasse.admin.model.v1.*;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.enmasse.address.model.Address;
-import io.enmasse.address.model.AddressPlan;
-import io.enmasse.address.model.AddressResolver;
-import io.enmasse.address.model.AddressSpacePlan;
-import io.enmasse.address.model.AddressType;
-import io.enmasse.address.model.KubeUtil;
-import io.enmasse.address.model.ResourceAllowance;
-import io.enmasse.address.model.ResourceDefinition;
-import io.enmasse.address.model.ResourceRequest;
-import io.enmasse.address.model.Status;
 import io.enmasse.config.AnnotationKeys;
 import io.enmasse.k8s.api.EventLogger;
 
 public class AddressProvisioner {
     private static final Logger log = LoggerFactory.getLogger(AddressProvisioner.class);
+    private final AddressSpaceResolver addressSpaceResolver;
     private final AddressResolver addressResolver;
     private final AddressSpacePlan addressSpacePlan;
     private final BrokerSetGenerator clusterGenerator;
@@ -48,7 +43,8 @@ public class AddressProvisioner {
     private final EventLogger eventLogger;
     private final String infraUuid;
 
-    public AddressProvisioner(AddressResolver addressResolver, AddressSpacePlan addressSpacePlan, BrokerSetGenerator clusterGenerator, Kubernetes kubernetes, EventLogger eventLogger, String infraUuid) {
+    public AddressProvisioner(AddressSpaceResolver addressSpaceResolver, AddressResolver addressResolver, AddressSpacePlan addressSpacePlan, BrokerSetGenerator clusterGenerator, Kubernetes kubernetes, EventLogger eventLogger, String infraUuid) {
+        this.addressSpaceResolver = addressSpaceResolver;
         this.addressResolver = addressResolver;
         this.addressSpacePlan = addressSpacePlan;
         this.clusterGenerator = clusterGenerator;
@@ -362,7 +358,7 @@ public class AddressProvisioner {
     private Map<String, Double> computeLimits() {
         Map<String, Double> limits = new HashMap<>();
         for (ResourceAllowance allowance : addressSpacePlan.getResources()) {
-            limits.put(allowance.getResourceName(), allowance.getMax());
+            limits.put(allowance.getName(), allowance.getMax());
         }
         return limits;
     }
@@ -383,10 +379,9 @@ public class AddressProvisioner {
                 router.setNewReplicas(totalNeeded);
             } else if ("broker".equals(resourceName)) {
                 // Provision pooled broker
-                ResourceDefinition pooledDefinition = addressResolver.getResourceDefinition(resourceName);
                 int needPooled = sumNeededMatching(entry.getValue(), pooledPattern);
                 if (needPooled > 0) {
-                    provisionBroker(existingClusters, "broker-pooled-" + infraUuid, pooledDefinition, needPooled, null);
+                    provisionBroker(existingClusters, "broker-pooled-" + infraUuid, needPooled, null, null);
                 }
 
                 // Collect all sharded brokers
@@ -404,8 +399,7 @@ public class AddressProvisioner {
                     }
                     AddressType addressType = addressResolver.getType(address);
                     AddressPlan addressPlan = addressResolver.getPlan(addressType, address);
-                    ResourceDefinition resourceDefinition = addressResolver.getResourceDefinition(addressPlan, resourceName);
-                    provisionBroker(existingClusters, brokerIdEntry.getKey(), resourceDefinition, brokerIdEntry.getValue(), address);
+                    provisionBroker(existingClusters, brokerIdEntry.getKey(), brokerIdEntry.getValue(), address, addressPlan);
                 }
             }
         }
@@ -458,7 +452,7 @@ public class AddressProvisioner {
         resourceNeeded.put(clusterId + numPooled, new UsageInfo());
     }
 
-    private void provisionBroker(List<BrokerCluster> clusterList, String clusterId, ResourceDefinition resourceDefinition, int numReplicas, Address address) {
+    private void provisionBroker(List<BrokerCluster> clusterList, String clusterId, int numReplicas, Address address, AddressPlan addressPlan) {
         try {
             for (BrokerCluster cluster : clusterList) {
                 if (cluster.getClusterId().equals(clusterId)) {
@@ -468,7 +462,8 @@ public class AddressProvisioner {
             }
 
             // Needs to be created
-            BrokerCluster cluster = clusterGenerator.generateCluster(clusterId, resourceDefinition, numReplicas, address);
+            StandardInfraConfig desiredConfig = (StandardInfraConfig) addressSpaceResolver.getInfraConfig("standard", addressSpacePlan.getMetadata().getName());
+            BrokerCluster cluster = clusterGenerator.generateCluster(clusterId, numReplicas, address, addressPlan, desiredConfig);
             if (!cluster.getResources().getItems().isEmpty()) {
                 kubernetes.create(cluster.getResources());
                 eventLogger.log(BrokerCreated, "Created broker " + cluster.getClusterId() + " with " + numReplicas + " replicas", Normal, Broker, cluster.getClusterId());

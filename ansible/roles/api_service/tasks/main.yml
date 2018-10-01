@@ -47,3 +47,22 @@
           name: api-server
           namespace: "{{ namespace }}"
       EOF
+
+- name: Register Admin API Server with API Aggregator
+  shell:
+    cmd: |
+      cat <<EOF | oc apply -f -
+      apiVersion: apiregistration.k8s.io/v1beta1
+      kind: APIService
+      metadata:
+        name: v1alpha1.admin.enmasse.io
+      spec:
+        group: admin.enmasse.io
+        groupPriorityMinimum: 1000
+        caBundle: "{{ ca_bundle | b64encode }}"
+        version: v1alpha1
+        versionPriority: 10
+        service:
+          name: api-server
+          namespace: "{{ namespace }}"
+      EOF

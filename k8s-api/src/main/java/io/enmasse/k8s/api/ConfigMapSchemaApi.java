@@ -6,7 +6,7 @@ package io.enmasse.k8s.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.enmasse.address.model.*;
-import io.enmasse.address.model.v1.CodecV1;
+import io.enmasse.admin.model.v1.*;
 import io.enmasse.config.AnnotationKeys;
 import io.enmasse.config.LabelKeys;
 import io.enmasse.k8s.api.cache.*;
@@ -25,11 +25,10 @@ import java.util.stream.Collectors;
 
 public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, ConfigMapList> {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(ConfigMapSchemaApi.class);
     private final NamespacedOpenShiftClient client;
     private final String namespace;
-
-    private static final ObjectMapper mapper = CodecV1.getMapper();
 
     public ConfigMapSchemaApi(NamespacedOpenShiftClient client, String namespace) {
         this.client = client;
@@ -73,37 +72,40 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
         return getResources(AddressSpacePlan.class, "address-space-plan", maps);
     }
 
-    private List<ResourceDefinition> getResourceDefinitions(List<ConfigMap> maps) {
-        return getResources(ResourceDefinition.class, "resource-definition", maps);
+    private List<BrokeredInfraConfig> getBrokeredInfraConfigs(List<ConfigMap> maps) {
+        return getResources(BrokeredInfraConfig.class, "brokered-infra-config", maps);
     }
 
-    private void validateAddressSpacePlan(AddressSpacePlan addressSpacePlan, List<AddressPlan> addressPlans, List<ResourceDefinition> resourceDefinitions) {
-        Set<String> resourceDefinitionNames = resourceDefinitions.stream().map(ResourceDefinition::getName).collect(Collectors.toSet());
-        String definedBy = addressSpacePlan.getAnnotations().get(AnnotationKeys.DEFINED_BY);
-        if (!resourceDefinitionNames.contains(definedBy)) {
-            String error = "Error validating address space plan " + addressSpacePlan.getName() + ": missing resource definition " + definedBy + ", found: " + resourceDefinitionNames;
+    private List<StandardInfraConfig> getStandardInfraConfigs(List<ConfigMap> maps) {
+        return getResources(StandardInfraConfig.class, "standard-infra-config", maps);
+    }
+
+    private void validateAddressSpacePlan(AddressSpacePlan addressSpacePlan, List<AddressPlan> addressPlans, List<String> infraTemplateNames) {
+        String definedBy = addressSpacePlan.getMetadata().getAnnotations().get(AnnotationKeys.DEFINED_BY);
+        if (!infraTemplateNames.contains(definedBy)) {
+            String error = "Error validating address space plan " + addressSpacePlan.getMetadata().getName() + ": missing infra config definition " + definedBy + ", found: " + infraTemplateNames;
             log.warn(error);
             throw new SchemaValidationException(error);
         }
 
-        Set<String> addressPlanNames = addressPlans.stream().map(AddressPlan::getName).collect(Collectors.toSet());
+        Set<String> addressPlanNames = addressPlans.stream().map(p -> p.getMetadata().getName()).collect(Collectors.toSet());
         if (!addressPlanNames.containsAll(addressSpacePlan.getAddressPlans())) {
             Set<String> missing = new HashSet<>(addressSpacePlan.getAddressPlans());
             missing.removeAll(addressPlanNames);
-            String error = "Error validating address space plan " + addressSpacePlan.getName() + ": missing " + missing;
+            String error = "Error validating address space plan " + addressSpacePlan.getMetadata().getName() + ": missing " + missing;
             log.warn(error);
             throw new SchemaValidationException(error);
         }
     }
 
-    private void validateAddressPlan(AddressPlan addressPlan, List<ResourceDefinition> resourceDefinitions) {
-        Set<String> resourceDefinitionNames = resourceDefinitions.stream().map(ResourceDefinition::getName).collect(Collectors.toSet());
+    private void validateAddressPlan(AddressPlan addressPlan) {
+        Set<String> allowedResources = new HashSet<>(Arrays.asList("broker", "router"));
         Set<String> resourcesUsed = addressPlan.getRequiredResources().stream().map(ResourceRequest::getResourceName).collect(Collectors.toSet());
 
-        if (!resourceDefinitionNames.containsAll(resourcesUsed)) {
+        if (!allowedResources.containsAll(resourcesUsed)) {
             Set<String> missing = new HashSet<>(resourcesUsed);
-            missing.removeAll(resourceDefinitionNames);
-            String error = "Error validating address plan " + addressPlan.getName() + ": missing resources " + missing;
+            missing.removeAll(allowedResources);
+            String error = "Error validating address plan " + addressPlan.getMetadata().getName() + ": missing resources " + missing;
             log.warn(error);
             throw new SchemaValidationException(error);
         }
@@ -123,7 +125,7 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
                 .build();
     }
 
-    private AddressSpaceType createStandardType(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans) {
+    private AddressSpaceType createStandardType(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans, List<InfraConfig> standardInfraConfigs) {
         AddressSpaceType.Builder builder = new AddressSpaceType.Builder();
         builder.setName("standard");
         builder.setDescription("A standard address space consists of an AMQP router network in combination with " +
@@ -148,9 +150,13 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
 
         List<AddressPlan> filteredAddressPlans = addressPlans.stream()
                 .filter(plan -> filteredAddressSpaceplans.stream()
-                        .filter(aPlan -> aPlan.getAddressPlans().contains(plan.getName()))
+                        .filter(aPlan -> aPlan.getAddressPlans().contains(plan.getMetadata().getName()))
                         .count() > 0)
                 .collect(Collectors.toList());
+
+
+        builder.setInfraConfigs(standardInfraConfigs);
+        builder.setInfraConfigType(json -> mapper.readValue(json, StandardInfraConfig.class));
 
         builder.setAddressTypes(Arrays.asList(
                 createAddressType(
@@ -181,7 +187,7 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
         return builder.build();
     }
 
-    private AddressSpaceType createBrokeredType(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans) {
+    private AddressSpaceType createBrokeredType(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans, List<InfraConfig> brokeredInfraConfigs) {
         AddressSpaceType.Builder builder = new AddressSpaceType.Builder();
         builder.setName("brokered");
         builder.setDescription("A brokered address space consists of a broker combined with a console for managing addresses.");
@@ -197,9 +203,12 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
 
         List<AddressPlan> filteredAddressPlans = addressPlans.stream()
                 .filter(plan -> filteredAddressSpaceplans.stream()
-                        .filter(aPlan -> aPlan.getAddressPlans().contains(plan.getName()))
+                        .filter(aPlan -> aPlan.getAddressPlans().contains(plan.getMetadata().getName()))
                         .count() > 0)
                 .collect(Collectors.toList());
+
+        builder.setInfraConfigs(brokeredInfraConfigs);
+        builder.setInfraConfigType(json -> mapper.readValue(json, BrokeredInfraConfig.class));
 
         builder.setAddressTypes(Arrays.asList(
                 createAddressType(
@@ -254,7 +263,7 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
         return client.withRequestConfig(requestConfig).call(c ->
                 c.configMaps()
                         .inNamespace(namespace)
-                        .withLabelIn(LabelKeys.TYPE,"address-space-plan", "address-plan", "resource-definition")
+                        .withLabelIn(LabelKeys.TYPE,"address-space-plan", "address-plan", "brokered-infra-config", "standard-infra-config")
                         .withResourceVersion(listOptions.getResourceVersion())
                         .watch(watcher));
     }
@@ -263,30 +272,35 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
     public ConfigMapList list(ListOptions listOptions) {
         return client.configMaps()
                 .inNamespace(namespace)
-                .withLabelIn(LabelKeys.TYPE, "address-space-plan", "address-plan", "resource-definition")
+                .withLabelIn(LabelKeys.TYPE, "address-space-plan", "address-plan", "brokered-infra-config", "standard-infra-config")
                 .list();
     }
 
     private Schema assembleSchema(List<ConfigMap> maps) {
         List<AddressSpacePlan> addressSpacePlans = getAddressSpacePlans(maps);
         List<AddressPlan> addressPlans = getAddressPlans(maps);
-        List<ResourceDefinition> resourceDefinitions = getResourceDefinitions(maps);
+        List<BrokeredInfraConfig> brokeredInfraConfigs = getBrokeredInfraConfigs(maps);
+        List<StandardInfraConfig> standardInfraConfigs = getStandardInfraConfigs(maps);
+        log.info("Got brokered infra configs: {}", brokeredInfraConfigs);
+        log.info("Got standard infra configs: {}", standardInfraConfigs);
 
         for (AddressSpacePlan addressSpacePlan : addressSpacePlans) {
-            validateAddressSpacePlan(addressSpacePlan, addressPlans, resourceDefinitions);
+            if (addressSpacePlan.getAddressSpaceType().equals("brokered")) {
+                validateAddressSpacePlan(addressSpacePlan, addressPlans, brokeredInfraConfigs.stream().map(t -> t.getMetadata().getName()).collect(Collectors.toList()));
+            } else {
+                validateAddressSpacePlan(addressSpacePlan, addressPlans, standardInfraConfigs.stream().map(t -> t.getMetadata().getName()).collect(Collectors.toList()));
+            }
         }
 
         for (AddressPlan addressPlan : addressPlans) {
-            validateAddressPlan(addressPlan, resourceDefinitions);
+            validateAddressPlan(addressPlan);
         }
 
         List<AddressSpaceType> types = new ArrayList<>();
-        types.add(createBrokeredType(addressSpacePlans, addressPlans));
-        types.add(createStandardType(addressSpacePlans, addressPlans));
+        types.add(createBrokeredType(addressSpacePlans, addressPlans, new ArrayList<>(brokeredInfraConfigs)));
+        types.add(createStandardType(addressSpacePlans, addressPlans, new ArrayList<>(standardInfraConfigs)));
         return new Schema.Builder()
                 .setAddressSpaceTypes(types)
-                .setResourceDefinitions(resourceDefinitions)
                 .build();
     }
-
 }

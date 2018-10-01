@@ -7,6 +7,8 @@ package io.enmasse.address.model.v1.address;
 import io.enmasse.address.model.*;
 import io.enmasse.address.model.v1.CodecV1;
 import io.enmasse.address.model.v1.DeserializeException;
+import io.enmasse.admin.model.v1.AddressPlan;
+import io.enmasse.admin.model.v1.AddressSpacePlan;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
 
@@ -207,16 +209,16 @@ public class SerializationTest {
                 "}";
 
         AddressSpacePlan addressSpacePlan = CodecV1.getMapper().readValue(json, AddressSpacePlan.class);
-        assertThat(addressSpacePlan.getName(), is("myspace"));
+        assertThat(addressSpacePlan.getMetadata().getName(), is("myspace"));
         assertThat(addressSpacePlan.getDisplayName(), is("MySpace"));
         assertFalse(addressSpacePlan.getUuid().isEmpty());
         assertThat(addressSpacePlan.getAddressPlans().size(), is(1));
         assertThat(addressSpacePlan.getAddressPlans().get(0), is("plan1"));
         assertThat(addressSpacePlan.getResources().size(), is(2));
-        assertThat(addressSpacePlan.getResources().get(0).getResourceName(), is("router"));
-        assertThat(addressSpacePlan.getResources().get(1).getResourceName(), is("broker"));
-        assertThat(addressSpacePlan.getAnnotations().size(), is (1));
-        assertThat(addressSpacePlan.getAnnotations().get("mykey"), is("myvalue"));
+        assertThat(addressSpacePlan.getResources().get(0).getName(), is("router"));
+        assertThat(addressSpacePlan.getResources().get(1).getName(), is("broker"));
+        assertThat(addressSpacePlan.getMetadata().getAnnotations().size(), is (1));
+        assertThat(addressSpacePlan.getMetadata().getAnnotations().get("mykey"), is("myvalue"));
     }
 
     @Test
@@ -236,16 +238,17 @@ public class SerializationTest {
                 "}";
 
         AddressSpacePlan addressSpacePlan = CodecV1.getMapper().readValue(json, AddressSpacePlan.class);
-        assertThat(addressSpacePlan.getName(), is("myspace"));
+        assertThat(addressSpacePlan.getMetadata().getName(), is("myspace"));
         assertThat(addressSpacePlan.getDisplayName(), is("myspace"));
         assertFalse(addressSpacePlan.getUuid().isEmpty());
         assertThat(addressSpacePlan.getAddressPlans().size(), is(1));
         assertThat(addressSpacePlan.getAddressPlans().get(0), is("plan1"));
         assertThat(addressSpacePlan.getResources().size(), is(2));
-        assertThat(addressSpacePlan.getResources().get(0).getResourceName(), is("router"));
-        assertThat(addressSpacePlan.getResources().get(1).getResourceName(), is("broker"));
+        assertThat(addressSpacePlan.getResources().get(0).getName(), is("router"));
+        assertThat(addressSpacePlan.getResources().get(1).getName(), is("broker"));
     }
 
+    /*
     @Test
     public void testDeserializeResourceDefinitionWithTemplate() throws IOException {
         String json = "{" +
@@ -283,7 +286,7 @@ public class SerializationTest {
         ResourceDefinition rdef = CodecV1.getMapper().readValue(json, ResourceDefinition.class);
         assertThat(rdef.getName(), is("rdef1"));
         assertFalse(rdef.getTemplateName().isPresent());
-    }
+    }*/
 
     @Test
     public void testDeserializeAddressPlan() throws IOException {
@@ -304,7 +307,7 @@ public class SerializationTest {
                 "}";
 
         AddressPlan addressPlan = CodecV1.getMapper().readValue(json, AddressPlan.class);
-        assertThat(addressPlan.getName(), is("plan1"));
+        assertThat(addressPlan.getMetadata().getName(), is("plan1"));
         assertThat(addressPlan.getDisplayName(), is("MyPlan"));
         assertThat(addressPlan.getAddressType(), is("queue"));
         assertFalse(addressPlan.getUuid().isEmpty());
@@ -329,7 +332,7 @@ public class SerializationTest {
                 "}";
 
         AddressPlan addressPlan = CodecV1.getMapper().readValue(json, AddressPlan.class);
-        assertThat(addressPlan.getName(), is("plan1"));
+        assertThat(addressPlan.getMetadata().getName(), is("plan1"));
         assertThat(addressPlan.getDisplayName(), is("plan1"));
         assertThat(addressPlan.getAddressType(), is("queue"));
         assertFalse(addressPlan.getUuid().isEmpty());

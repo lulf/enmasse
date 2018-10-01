@@ -5,6 +5,8 @@
 package io.enmasse.controller.standard;
 
 import io.enmasse.address.model.*;
+import io.enmasse.admin.model.v1.*;
+import io.enmasse.config.AnnotationKeys;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,7 +27,10 @@ public class StandardControllerSchema {
 
     public StandardControllerSchema(List<ResourceAllowance> resourceAllowanceList) {
         plan = new AddressSpacePlan.Builder()
-                .setName("plan1")
+                .setMetadata(new ObjectMetadata.Builder()
+                        .setName("plan1")
+                        .setAnnotations(Collections.singletonMap(AnnotationKeys.DEFINED_BY, "cfg1"))
+                        .build())
                 .setResources(resourceAllowanceList)
                 .setAddressSpaceType("standard")
                 .setAddressPlans(Arrays.asList(
@@ -54,9 +59,9 @@ public class StandardControllerSchema {
                                 .setDescription("anycast")
                                 .setAddressPlans(Arrays.asList(
                                         new AddressPlan.Builder()
-                                        .setName("small-anycast")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("small-anycast").build())
                                         .setAddressType("anycast")
-                                        .setRequestedResources(Arrays.asList(
+                                        .setRequiredResources(Arrays.asList(
                                                 new ResourceRequest("router", 0.2000000000)))
                                         .build()))
                                 .build(),
@@ -65,41 +70,41 @@ public class StandardControllerSchema {
                                 .setDescription("queue")
                                 .setAddressPlans(Arrays.asList(
                                         new AddressPlan.Builder()
-                                                .setName("pooled-queue-large")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("pooled-queue-large").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("broker", 0.6)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("pooled-queue-small")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("pooled-queue-small").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("broker", 0.1)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("pooled-queue-tiny")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("pooled-queue-tiny").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("broker", 0.049)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("small-queue")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("small-queue").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.2),
                                                         new ResourceRequest("broker", 0.4)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("large-queue")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("large-queue").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.2),
                                                         new ResourceRequest("broker", 1.0)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("xlarge-queue")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("xlarge-queue").build())
                                                 .setAddressType("queue")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.2),
                                                         new ResourceRequest("broker", 2.0)))
                                                 .build()))
@@ -109,16 +114,16 @@ public class StandardControllerSchema {
                                 .setDescription("topic")
                                 .setAddressPlans(Arrays.asList(
                                         new AddressPlan.Builder()
-                                                .setName("small-topic")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("small-topic").build())
                                                 .setAddressType("topic")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.1),
                                                         new ResourceRequest("broker", 0.2)))
                                                 .build(),
                                         new AddressPlan.Builder()
-                                                .setName("xlarge-topic")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("xlarge-topic").build())
                                                 .setAddressType("topic")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.1),
                                                         new ResourceRequest("broker", 1.0)))
                                                 .build()))
@@ -128,27 +133,30 @@ public class StandardControllerSchema {
                                 .setDescription("subscription")
                                 .setAddressPlans(Arrays.asList(
                                         new AddressPlan.Builder()
-                                                .setName("small-subscription")
+                                                .setMetadata(new ObjectMetadata.Builder().setName("small-subscription").build())
                                                 .setAddressType("subscription")
-                                                .setRequestedResources(Arrays.asList(
+                                                .setRequiredResources(Arrays.asList(
                                                         new ResourceRequest("router", 0.05),
                                                         new ResourceRequest("broker", 0.1)))
                                                 .build()))
                                 .build()))
+                .setInfraConfigs(Arrays.asList(new StandardInfraConfig(new ObjectMetadata.Builder()
+                        .setName("cfg1")
+                        .setAnnotations(Collections.singletonMap(AnnotationKeys.QUEUE_TEMPLATE_NAME, "queuetemplate"))
+                        .build(), new StandardInfraConfigSpec("latest",
+                        new StandardInfraConfigSpecAdmin(
+                                new StandardInfraConfigSpecAdminResources("512Mi")),
+                        new StandardInfraConfigSpecBroker(
+                                new StandardInfraConfigSpecBrokerResources("512Mi", "2Gi"),
+                                "FAIL"),
+                        new StandardInfraConfigSpecRouter(
+                                new StandardInfraConfigSpecRouterResources("512Mi"),
+                                "500")))))
+                .setInfraConfigType(json -> null)
                 .build();
 
         schema = new Schema.Builder()
                 .setAddressSpaceTypes(Arrays.asList(type))
-                .setResourceDefinitions(Arrays.asList(
-                        new ResourceDefinition.Builder()
-                            .setName("router")
-                            .build(),
-                        new ResourceDefinition.Builder()
-                            .setName("broker")
-                            .build(),
-                        new ResourceDefinition.Builder()
-	                    .setName("broker-topic")
-	                    .build()))
                 .build();
     }
 

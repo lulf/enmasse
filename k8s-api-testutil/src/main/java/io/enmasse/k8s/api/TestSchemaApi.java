@@ -5,13 +5,13 @@
 package io.enmasse.k8s.api;
 
 import io.enmasse.address.model.*;
-import io.enmasse.k8s.api.cache.Store;
+import io.enmasse.admin.model.v1.*;
+import io.enmasse.config.AnnotationKeys;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestSchemaApi implements SchemaApi {
     @Override
@@ -32,9 +32,11 @@ public class TestSchemaApi implements SchemaApi {
                                                 .setDescription("Test direct")
                                                 .setAddressPlans(Arrays.asList(
                                                         new AddressPlan.Builder()
-                                                                .setName("plan1")
+                                                                .setMetadata(new ObjectMetadata.Builder()
+                                                                        .setName("plan1")
+                                                                        .build())
                                                                 .setAddressType("anycast")
-                                                                .setRequestedResources(Collections.singletonList(
+                                                                .setRequiredResources(Collections.singletonList(
                                                                         new ResourceRequest("router", 1.0)
                                                                 ))
                                                                 .build()
@@ -45,25 +47,36 @@ public class TestSchemaApi implements SchemaApi {
                                                 .setDescription("Test queue")
                                                 .setAddressPlans(Arrays.asList(
                                                         new AddressPlan.Builder()
-                                                                .setName("pooled-inmemory")
+                                                                .setMetadata(new ObjectMetadata.Builder()
+                                                                        .setName("pooled-inmemory")
+                                                                        .build())
                                                                 .setAddressType("queue")
-                                                                .setRequestedResources(Collections.singletonList(
+                                                                .setRequiredResources(Collections.singletonList(
                                                                         new ResourceRequest("broker", 0.1)
                                                                 ))
                                                                 .build(),
                                                         new AddressPlan.Builder()
-                                                                .setName("plan1")
+                                                                .setMetadata(new ObjectMetadata.Builder()
+                                                                        .setName("plan1")
+                                                                        .build())
                                                                 .setAddressType("queue")
-                                                                .setRequestedResources(Collections.singletonList(
+                                                                .setRequiredResources(Collections.singletonList(
                                                                         new ResourceRequest("broker", 1.0)
                                                                 ))
                                                                 .build()
                                                 ))
                                                 .build()
                                 ))
+                                .setInfraConfigs(Arrays.asList((InfraConfig) () -> new ObjectMetadata.Builder()
+                                        .setName("infra")
+                                        .build()))
+                                .setInfraConfigType(json -> null)
                                 .setAddressSpacePlans(Collections.singletonList(
                                         new AddressSpacePlan.Builder()
-                                                .setName("myplan")
+                                                .setMetadata(new ObjectMetadata.Builder()
+                                                        .setAnnotations(Collections.singletonMap(AnnotationKeys.DEFINED_BY, "infra"))
+                                                        .setName("myplan")
+                                                        .build())
                                                 .setAddressSpaceType("type1")
                                                 .setResources(Collections.singletonList(
                                                         new ResourceAllowance("broker", 0.0, 1.0)
@@ -73,12 +86,6 @@ public class TestSchemaApi implements SchemaApi {
                                 ))
                                 .build()
 
-                ))
-                .setResourceDefinitions(Collections.singletonList(
-                        new ResourceDefinition.Builder()
-                                .setName("broker")
-                                .setTemplateName("broker-template")
-                        .build()
                 ))
                 .build();
     }

@@ -13,7 +13,7 @@ data:
       "metadata": {
         "name": "unlimited-brokered",
         "annotations": {
-          "enmasse.io/defined-by": "brokered-space"
+          "enmasse.io/defined-by": "brokered-infra-config"
         }
       },
       "displayName": "Unlimited",

@@ -13,7 +13,7 @@ data:
       "metadata": {
         "name": "unlimited-standard-without-mqtt",
         "annotations": {
-          "enmasse.io/defined-by": "standard-space-without-mqtt"
+          "enmasse.io/defined-by": "standard-infra-config"
         }
       },
       "displayName": "Unlimited",

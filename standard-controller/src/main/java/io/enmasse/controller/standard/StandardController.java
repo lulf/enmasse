@@ -4,6 +4,7 @@
  */
 package io.enmasse.controller.standard;
 
+import io.enmasse.admin.model.v1.AddressSpacePlan;
 import io.enmasse.k8s.api.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
@@ -51,6 +52,8 @@ public class StandardController {
         SchemaApi schemaApi = new ConfigMapSchemaApi(openShiftClient, openShiftClient.getNamespace());
         CachingSchemaProvider schemaProvider = new CachingSchemaProvider();
         schemaApi.watchSchema(schemaProvider, resyncInterval);
+
+        openShiftClient.customResources(null, AddressSpacePlan.class, AddressSpacePlanList.class, DoneableAddressSpacePlan.class);
 
         Kubernetes kubernetes = new KubernetesHelper(openShiftClient, templateDir, infraUuid);
         BrokerSetGenerator clusterGenerator = new TemplateBrokerSetGenerator(kubernetes, templateOptions, addressSpace, infraUuid, schemaProvider);

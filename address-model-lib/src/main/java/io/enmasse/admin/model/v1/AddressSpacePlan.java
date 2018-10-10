@@ -7,18 +7,25 @@ package io.enmasse.admin.model.v1;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@JsonDeserialize(
+    using = JsonDeserializer.None.class
+)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddressSpacePlan {
+public class AddressSpacePlan implements HasMetadata {
     @JsonProperty("apiVersion")
-    private final String apiVersion = "admin.enmasse.io/v1alpha1";
+    private String apiVersion = "admin.enmasse.io/v1alpha1";
     @JsonProperty("kind")
-    private final String kind = "AddressSpacePlan";
+    private String kind = "AddressSpacePlan";
 
-    private final ObjectMetadata metadata;
+    private ObjectMeta metadata;
 
     private final String displayName;
     private final int displayOrder;
@@ -30,7 +37,7 @@ public class AddressSpacePlan {
     private final List<String> addressPlans;
 
     @JsonCreator
-    private AddressSpacePlan(@JsonProperty("metadata") ObjectMetadata metadata,
+    private AddressSpacePlan(@JsonProperty("metadata") ObjectMeta metadata,
                              @JsonProperty("displayName") String displayName,
                              @JsonProperty("displayOrder") int displayOrder,
                              @JsonProperty("shortDescription") String shortDescription,
@@ -71,8 +78,28 @@ public class AddressSpacePlan {
         return Collections.unmodifiableList(addressPlans);
     }
 
-    public ObjectMetadata getMetadata() {
+    public ObjectMeta getMetadata() {
         return metadata;
+    }
+
+    @Override
+    public void setMetadata(ObjectMeta metadata) {
+        this.metadata = metadata;
+    }
+
+    @Override
+    public String getKind() {
+        return kind;
+    }
+
+    @Override
+    public String getApiVersion() {
+        return apiVersion;
+    }
+
+    @Override
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
     }
 
     public String getDisplayName() {
@@ -135,7 +162,7 @@ public class AddressSpacePlan {
     }
 
     public static class Builder {
-        private ObjectMetadata metadata;
+        private ObjectMeta metadata;
         private String displayName;
         private int displayOrder;
         private String shortDescription;
@@ -145,7 +172,7 @@ public class AddressSpacePlan {
         private List<ResourceAllowance> allowedResources;
         private List<String> addressPlans;
 
-        public Builder setMetadata(ObjectMetadata metadata) {
+        public Builder setMetadata(ObjectMeta metadata) {
             this.metadata = metadata;
             return this;
         }

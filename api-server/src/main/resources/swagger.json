@@ -1923,6 +1923,12 @@
                             }
                         }
                     }
+                },
+                "addressPlans": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2001,7 +2007,7 @@
                 "addressType": {
                     "type": "string"
                 },
-                "resources": {
+                "requiredResources": {
                     "type": "array",
                     "items": {
                         "type": "object",

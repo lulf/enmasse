@@ -4,30 +4,31 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"version", "admin", "broker", "router"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StandardInfraConfigSpec {
 
-    private final String version;
-    private final StandardInfraConfigSpecAdmin admin;
-    private final StandardInfraConfigSpecBroker broker;
-    private final StandardInfraConfigSpecRouter router;
+    private String version;
+    private StandardInfraConfigSpecAdmin admin;
+    private StandardInfraConfigSpecBroker broker;
+    private StandardInfraConfigSpecRouter router;
 
-    @JsonCreator
-    public StandardInfraConfigSpec(@JsonProperty("version") String version,
-                                   @JsonProperty("admin") StandardInfraConfigSpecAdmin admin,
-                                   @JsonProperty("broker") StandardInfraConfigSpecBroker broker,
-                                   @JsonProperty("router") StandardInfraConfigSpecRouter router) {
-        this.version = version;
-        this.admin = admin;
-        this.broker = broker;
-        this.router = router;
-    }
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public String getVersion() {
         return version;
@@ -59,5 +60,31 @@ public class StandardInfraConfigSpec {
     @Override
     public int hashCode() {
         return Objects.hash(version, admin, broker, router);
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public void setAdmin(StandardInfraConfigSpecAdmin admin) {
+        this.admin = admin;
+    }
+
+    public void setBroker(StandardInfraConfigSpecBroker broker) {
+        this.broker = broker;
+    }
+
+    public void setRouter(StandardInfraConfigSpecRouter router) {
+        this.router = router;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

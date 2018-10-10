@@ -4,6 +4,7 @@
  */
 package io.enmasse.admin.model.v1;
 
-public interface InfraConfig {
-    ObjectMetadata getMetadata();
+import io.fabric8.kubernetes.api.model.HasMetadata;
+
+public interface InfraConfig extends HasMetadata {
 }

@@ -4,16 +4,27 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"resources", "addressFullPolicy"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BrokeredInfraConfigSpecBroker {
     private final BrokeredInfraConfigSpecBrokerResources resources;
     private final String addressFullPolicy;
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     @JsonCreator
     public BrokeredInfraConfigSpecBroker(@JsonProperty("resources") BrokeredInfraConfigSpecBrokerResources resources,
@@ -42,5 +53,15 @@ public class BrokeredInfraConfigSpecBroker {
 
     public String getAddressFullPolicy() {
         return addressFullPolicy;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

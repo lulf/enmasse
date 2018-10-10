@@ -4,8 +4,7 @@
  */
 package io.enmasse.k8s.api;
 
-import java.util.Set;
+import io.enmasse.admin.model.v1.BrokeredInfraConfig;
 
-public interface Watcher<T> {
-    void onUpdate(T item) throws Exception;
+interface BrokeredInfraConfigWatcher extends Watcher<BrokeredInfraConfig> {
 }

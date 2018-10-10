@@ -176,7 +176,7 @@ public class ConfigMapAddressApi implements AddressApi, ListerWatcher<ConfigMap,
     }
 
     @Override
-    public Watch watchAddresses(Watcher<Address> watcher, Duration resyncInterval) {
+    public Watch watchAddresses(Watcher<Set<Address>> watcher, Duration resyncInterval) {
         WorkQueue<ConfigMap> queue = new FifoQueue<>(config -> config.getMetadata().getName());
         Reflector.Config<ConfigMap, ConfigMapList> config = new Reflector.Config<>();
         config.setClock(Clock.systemUTC());

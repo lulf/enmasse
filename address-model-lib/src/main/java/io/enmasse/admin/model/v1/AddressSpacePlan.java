@@ -4,78 +4,61 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Doneable;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @JsonDeserialize(
     using = JsonDeserializer.None.class
 )
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"apiVersion", "kind", "metadata", "spec"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AddressSpacePlan implements HasMetadata {
+    private static final long serialVersionUID = 1L;
+
     @JsonProperty("apiVersion")
     private String apiVersion = "admin.enmasse.io/v1alpha1";
+
     @JsonProperty("kind")
     private String kind = "AddressSpacePlan";
 
     private ObjectMeta metadata;
 
-    private final String displayName;
-    private final int displayOrder;
-    private final String shortDescription;
-    private final String longDescription;
-    private final String uuid;
-    private final String addressSpaceType;
-    private final List<ResourceAllowance> resources;
-    private final List<String> addressPlans;
+    private String shortDescription;
+    private String uuid;
+    private String addressSpaceType;
+    private List<ResourceAllowance> resources;
+    private List<String> addressPlans;
 
-    @JsonCreator
-    private AddressSpacePlan(@JsonProperty("metadata") ObjectMeta metadata,
-                             @JsonProperty("displayName") String displayName,
-                             @JsonProperty("displayOrder") int displayOrder,
-                             @JsonProperty("shortDescription") String shortDescription,
-                             @JsonProperty("longDescription") String longDescription,
-                             @JsonProperty("uuid") String uuid,
-                             @JsonProperty("addressSpaceType") String addressSpaceType,
-                             @JsonProperty("resources") List<ResourceAllowance> resources,
-                             @JsonProperty("addressPlans") List<String> addressPlans) {
-        if (displayName == null) {
-            displayName = metadata.getName();
-        }
-        if (shortDescription == null) {
-            shortDescription = displayName;
-        }
-        if (longDescription == null) {
-            longDescription = shortDescription;
-        }
-        if (uuid == null) {
-            uuid = UUID.nameUUIDFromBytes(metadata.getName().getBytes(StandardCharsets.UTF_8)).toString();
-        }
-        this.metadata = metadata;
-        this.displayName = displayName;
-        this.displayOrder = displayOrder;
-        this.shortDescription = shortDescription;
-        this.longDescription = longDescription;
-        this.uuid = uuid;
-        this.addressSpaceType = addressSpaceType;
-        this.resources = resources;
-        this.addressPlans = addressPlans;
-    }
-
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public List<ResourceAllowance> getResources() {
-        return Collections.unmodifiableList(resources);
+        return resources;
     }
 
     public List<String> getAddressPlans() {
         return Collections.unmodifiableList(addressPlans);
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
     }
 
     public ObjectMeta getMetadata() {
@@ -102,35 +85,24 @@ public class AddressSpacePlan implements HasMetadata {
         this.apiVersion = apiVersion;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
     public String getAddressSpaceType() {
         return addressSpaceType;
-    }
-
-    public int getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public String getShortDescription() {
-        return shortDescription;
-    }
-
-    public String getLongDescription() {
-        return longDescription;
     }
 
     public String getUuid() {
         return uuid;
     }
 
-    public void validate() {
-        Objects.requireNonNull(displayName);
-        Objects.requireNonNull(shortDescription);
-        Objects.requireNonNull(longDescription);
-        Objects.requireNonNull(uuid);
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setAddressSpaceType(String addressSpaceType) {
+        this.addressSpaceType = addressSpaceType;
+    }
+
+    public void setResources(List<ResourceAllowance> resources) {
+        this.resources = resources;
     }
 
     @Override
@@ -161,69 +133,13 @@ public class AddressSpacePlan implements HasMetadata {
                 '}';
     }
 
-    public static class Builder {
-        private ObjectMeta metadata;
-        private String displayName;
-        private int displayOrder;
-        private String shortDescription;
-        private String longDescription;
-        private String uuid;
-        private String addressSpaceType;
-        private List<ResourceAllowance> allowedResources;
-        private List<String> addressPlans;
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
 
-        public Builder setMetadata(ObjectMeta metadata) {
-            this.metadata = metadata;
-            return this;
-        }
-
-        public Builder setDisplayName(String displayName) {
-            this.displayName = displayName;
-            return this;
-        }
-
-        public Builder setDisplayOrder(int displayOrder) {
-            this.displayOrder = displayOrder;
-            return this;
-        }
-
-        public Builder setShortDescription(String shortDescription) {
-            this.shortDescription = shortDescription;
-            return this;
-        }
-
-        public Builder setLongDescription(String longDescription) {
-            this.longDescription = longDescription;
-            return this;
-        }
-
-        public Builder setUuid(String uuid) {
-            this.uuid = uuid;
-            return this;
-        }
-
-        public Builder setAddressSpaceType(String addressSpaceType) {
-            this.addressSpaceType = addressSpaceType;
-            return this;
-        }
-
-        public Builder setResources(List<ResourceAllowance> allowedResources) {
-            this.allowedResources = allowedResources;
-            return this;
-        }
-
-        public Builder setAddressPlans(List<String> addressPlans) {
-            this.addressPlans = addressPlans;
-            return this;
-        }
-
-        public AddressSpacePlan build() {
-            Objects.requireNonNull(metadata);
-            Objects.requireNonNull(addressSpaceType);
-            Objects.requireNonNull(allowedResources);
-            Objects.requireNonNull(addressPlans);
-
-            return new AddressSpacePlan(metadata, displayName, displayOrder, shortDescription, longDescription, uuid, addressSpaceType, allowedResources, addressPlans);
-        }
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

@@ -4,30 +4,39 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@JsonDeserialize(
+        using = JsonDeserializer.None.class
+)
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"apiVersion", "kind", "metadata", "spec"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StandardInfraConfig implements InfraConfig {
-    @JsonProperty("apiVersion")
-    private final String apiVersion = "admin.enmasse.io/v1alpha1";
-    @JsonProperty("kind")
-    private final String kind = "StandardInfraConfig";
+    private String apiVersion = "admin.enmasse.io/v1alpha1";
+    private String kind = "StandardInfraConfig";
 
-    private final ObjectMetadata metadata;
-    private final StandardInfraConfigSpec spec;
+    private ObjectMeta metadata;
+    private StandardInfraConfigSpec spec;
 
-    @JsonCreator
-    public StandardInfraConfig(@JsonProperty("metadata") ObjectMetadata metadata,
-                               @JsonProperty("spec") StandardInfraConfigSpec spec) {
-        this.metadata = metadata;
-        this.spec = spec;
-    }
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
-    public ObjectMetadata getMetadata() {
+    public ObjectMeta getMetadata() {
         return metadata;
     }
 
@@ -56,25 +65,41 @@ public class StandardInfraConfig implements InfraConfig {
                 ", spec=" + spec + "}";
     }
 
-    public static class Builder {
-        private ObjectMetadata metadata;
-        private StandardInfraConfigSpec spec;
+    @Override
+    public String getApiVersion() {
+        return apiVersion;
+    }
 
-        public Builder setMetadata(ObjectMetadata metadata) {
-            this.metadata = metadata;
-            return this;
-        }
+    @Override
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
 
-        public Builder setSpec(StandardInfraConfigSpec spec) {
-            this.spec = spec;
-            return this;
-        }
+    @Override
+    public String getKind() {
+        return kind;
+    }
 
-        public StandardInfraConfig build() {
-            Objects.requireNonNull(metadata);
-            Objects.requireNonNull(spec);
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
 
-            return new StandardInfraConfig(metadata, spec);
-        }
+    @Override
+    public void setMetadata(ObjectMeta metadata) {
+        this.metadata = metadata;
+    }
+
+    public void setSpec(StandardInfraConfigSpec spec) {
+        this.spec = spec;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

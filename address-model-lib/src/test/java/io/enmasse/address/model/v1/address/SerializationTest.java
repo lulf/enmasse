@@ -200,6 +200,7 @@ public class SerializationTest {
                 "\"displayName\": \"MySpace\"," +
                 "\"shortDescription\": \"MySpace is cool\"," +
                 "\"longDescription\": \"MySpace is cool, but not much used anymore\"," +
+                "\"uuid\": \"12345\"," +
                 "\"addressPlans\":[\"plan1\"]," +
                 "\"addressSpaceType\": \"standard\"," +
                 "\"resources\": [" +
@@ -210,7 +211,7 @@ public class SerializationTest {
 
         AddressSpacePlan addressSpacePlan = CodecV1.getMapper().readValue(json, AddressSpacePlan.class);
         assertThat(addressSpacePlan.getMetadata().getName(), is("myspace"));
-        assertThat(addressSpacePlan.getDisplayName(), is("MySpace"));
+        assertThat(addressSpacePlan.getAdditionalProperties().get("displayName"), is("MySpace"));
         assertFalse(addressSpacePlan.getUuid().isEmpty());
         assertThat(addressSpacePlan.getAddressPlans().size(), is(1));
         assertThat(addressSpacePlan.getAddressPlans().get(0), is("plan1"));
@@ -239,8 +240,7 @@ public class SerializationTest {
 
         AddressSpacePlan addressSpacePlan = CodecV1.getMapper().readValue(json, AddressSpacePlan.class);
         assertThat(addressSpacePlan.getMetadata().getName(), is("myspace"));
-        assertThat(addressSpacePlan.getDisplayName(), is("myspace"));
-        assertFalse(addressSpacePlan.getUuid().isEmpty());
+        assertNull(addressSpacePlan.getUuid());
         assertThat(addressSpacePlan.getAddressPlans().size(), is(1));
         assertThat(addressSpacePlan.getAddressPlans().get(0), is("plan1"));
         assertThat(addressSpacePlan.getResources().size(), is(2));
@@ -308,12 +308,12 @@ public class SerializationTest {
 
         AddressPlan addressPlan = CodecV1.getMapper().readValue(json, AddressPlan.class);
         assertThat(addressPlan.getMetadata().getName(), is("plan1"));
-        assertThat(addressPlan.getDisplayName(), is("MyPlan"));
+        assertThat(addressPlan.getAdditionalProperties().get("displayName"), is("MyPlan"));
         assertThat(addressPlan.getAddressType(), is("queue"));
-        assertFalse(addressPlan.getUuid().isEmpty());
+        assertNull(addressPlan.getUuid());
         assertThat(addressPlan.getRequiredResources().size(), is(2));
-        assertThat(addressPlan.getRequiredResources().get(0).getResourceName(), is("router"));
-        assertThat(addressPlan.getRequiredResources().get(1).getResourceName(), is("broker"));
+        assertThat(addressPlan.getRequiredResources().get(0).getName(), is("router"));
+        assertThat(addressPlan.getRequiredResources().get(1).getName(), is("broker"));
     }
 
     @Test
@@ -333,12 +333,11 @@ public class SerializationTest {
 
         AddressPlan addressPlan = CodecV1.getMapper().readValue(json, AddressPlan.class);
         assertThat(addressPlan.getMetadata().getName(), is("plan1"));
-        assertThat(addressPlan.getDisplayName(), is("plan1"));
         assertThat(addressPlan.getAddressType(), is("queue"));
-        assertFalse(addressPlan.getUuid().isEmpty());
+        assertNull(addressPlan.getUuid());
         assertThat(addressPlan.getRequiredResources().size(), is(2));
-        assertThat(addressPlan.getRequiredResources().get(0).getResourceName(), is("router"));
-        assertThat(addressPlan.getRequiredResources().get(1).getResourceName(), is("broker"));
+        assertThat(addressPlan.getRequiredResources().get(0).getName(), is("router"));
+        assertThat(addressPlan.getRequiredResources().get(1).getName(), is("broker"));
     }
 
     @Test(expected = RuntimeException.class)

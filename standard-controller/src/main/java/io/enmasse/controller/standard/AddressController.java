@@ -332,7 +332,7 @@ public class AddressController extends AbstractVerticle implements Watcher<Addre
 
     private boolean isPooled(AddressPlan plan) {
         for (ResourceRequest request : plan.getRequiredResources()) {
-            if ("broker".equals(request.getResourceName()) && request.getAmount() < 1.0) {
+            if ("broker".equals(request.getName()) && request.getCredit() < 1.0) {
                 return true;
             }
         }

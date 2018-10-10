@@ -4,8 +4,7 @@
  */
 package io.enmasse.k8s.api;
 
-import java.util.Set;
+import io.enmasse.admin.model.v1.AddressSpacePlanList;
 
-public interface Watcher<T> {
-    void onUpdate(T item) throws Exception;
+interface AddressSpacePlanWatcher extends Watcher<AddressSpacePlanList> {
 }

@@ -49,7 +49,7 @@ public class StandardController {
                 .orElse(Duration.ofSeconds(30));
 
         NamespacedOpenShiftClient openShiftClient = new DefaultOpenShiftClient();
-        SchemaApi schemaApi = new ConfigMapSchemaApi(openShiftClient, openShiftClient.getNamespace());
+        SchemaApi schemaApi = new KubeSchemaApi(openShiftClient, openShiftClient.getNamespace());
         CachingSchemaProvider schemaProvider = new CachingSchemaProvider();
         schemaApi.watchSchema(schemaProvider, resyncInterval);
 

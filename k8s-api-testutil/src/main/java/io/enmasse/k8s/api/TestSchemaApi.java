@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class TestSchemaApi implements SchemaApi {
-    @Override
     public Schema getSchema() {
         return new Schema.Builder()
                 .setAddressSpaceTypes(Collections.singletonList(

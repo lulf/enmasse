@@ -4,24 +4,33 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@JsonDeserialize(
+        using = JsonDeserializer.None.class
+)
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"name", "min", "max"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResourceAllowance {
-    private final String name;
-    private final double min;
-    private final double max;
+    private String name;
+    private double min;
+    private double max;
 
-    @JsonCreator
-    public ResourceAllowance(@JsonProperty("name") String name,
-                             @JsonProperty("min") double min,
-                             @JsonProperty("max") double max) {
-        this.name = name;
-        this.min = min;
-        this.max = max;
-    }
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public String getName() {
         return name;
@@ -33,5 +42,27 @@ public class ResourceAllowance {
 
     public double getMax() {
         return max;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setMin(double min) {
+        this.min = min;
+    }
+
+    public void setMax(double max) {
+        this.max = max;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

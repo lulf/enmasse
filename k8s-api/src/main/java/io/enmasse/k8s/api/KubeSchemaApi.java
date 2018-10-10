@@ -11,73 +11,32 @@ import io.enmasse.config.AnnotationKeys;
 import io.enmasse.config.LabelKeys;
 import io.enmasse.k8s.api.cache.*;
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.RequestConfigBuilder;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, ConfigMapList> {
+public class KubeSchemaApi implements SchemaApi, AddressSpacePlanWatcher, AddressPlanWatcher, BrokeredInfraConfigWatcher, StandardInfraConfigWatcher
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final Logger log = LoggerFactory.getLogger(ConfigMapSchemaApi.class);
+    private static final Logger log = LoggerFactory.getLogger(KubeSchemaApi.class);
     private final NamespacedOpenShiftClient client;
+    private final AddressSpacePlanApi addressSpacePlanApi;
     private final String namespace;
 
-    public ConfigMapSchemaApi(NamespacedOpenShiftClient client, String namespace) {
+    private volatile Set<AddressSpacePlan> currentAddressSpacePlans;
+    private volatile Set<AddressPlan> currentAddressPlans;
+    private volatile Set<StandardInfraConfig> currentStandardInfraConfigs;
+    private volatile Set<BrokeredInfraConfig> currentBrokeredInfraConfigs;
+
+    public KubeSchemaApi(NamespacedOpenShiftClient client, String namespace) {
         this.client = client;
         this.namespace = namespace;
-    }
-
-    private <T> T getResourceFromConfig(Class<T> type, ConfigMap configMap) {
-        Map<String, String> data = configMap.getData();
-
-        try {
-            return mapper.readValue(data.get("definition"), type);
-        } catch (Exception e) {
-            log.warn("Unable to decode {}", type, e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private ConfigMapList listConfigMaps(String type) {
-        Map<String, String> labels = new LinkedHashMap<>();
-        labels.put(LabelKeys.TYPE, type);
-
-        return client.configMaps().inNamespace(namespace).withLabels(labels).list();
-    }
-
-    private <T> List<T> getResources(Class<T> type, String labelType, List<ConfigMap> maps) {
-        List<T> items = new ArrayList<>();
-
-        for (ConfigMap config : maps) {
-            if (config.getMetadata().getLabels().get(LabelKeys.TYPE).equals(labelType)) {
-                items.add(getResourceFromConfig(type, config));
-            }
-        }
-        return items;
-    }
-
-    private List<AddressPlan> getAddressPlans(List<ConfigMap> maps) {
-        return getResources(AddressPlan.class, "address-plan", maps);
-    }
-
-    private List<AddressSpacePlan> getAddressSpacePlans(List<ConfigMap> maps) {
-        return getResources(AddressSpacePlan.class, "address-space-plan", maps);
-    }
-
-    private List<BrokeredInfraConfig> getBrokeredInfraConfigs(List<ConfigMap> maps) {
-        return getResources(BrokeredInfraConfig.class, "brokered-infra-config", maps);
-    }
-
-    private List<StandardInfraConfig> getStandardInfraConfigs(List<ConfigMap> maps) {
-        return getResources(StandardInfraConfig.class, "standard-infra-config", maps);
     }
 
     private void validateAddressSpacePlan(AddressSpacePlan addressSpacePlan, List<AddressPlan> addressPlans, List<String> infraTemplateNames) {
@@ -100,7 +59,7 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
 
     private void validateAddressPlan(AddressPlan addressPlan) {
         Set<String> allowedResources = new HashSet<>(Arrays.asList("broker", "router"));
-        Set<String> resourcesUsed = addressPlan.getRequiredResources().stream().map(ResourceRequest::getResourceName).collect(Collectors.toSet());
+        Set<String> resourcesUsed = addressPlan.getRequiredResources().stream().map(ResourceRequest::getName).collect(Collectors.toSet());
 
         if (!allowedResources.containsAll(resourcesUsed)) {
             Set<String> missing = new HashSet<>(resourcesUsed);
@@ -109,12 +68,6 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
             log.warn(error);
             throw new SchemaValidationException(error);
         }
-    }
-
-    @Override
-    public Schema getSchema() {
-        List<ConfigMap> maps = list(new ListOptions()).getItems();
-        return assembleSchema(maps);
     }
 
     private EndpointSpec createEndpointSpec(String name, String port) {
@@ -235,24 +188,25 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
 
     @Override
     public Watch watchSchema(Watcher<Schema> watcher, Duration resyncInterval) {
-        WorkQueue<ConfigMap> queue = new FifoQueue<>(config -> config.getMetadata().getName());
-        Reflector.Config<ConfigMap, ConfigMapList> config = new Reflector.Config<>();
-        config.setClock(Clock.systemUTC());
-        config.setExpectedType(ConfigMap.class);
-        config.setListerWatcher(this);
-        config.setResyncInterval(resyncInterval);
-        config.setWorkQueue(queue);
-        config.setProcessor(map -> {
-            if (queue.hasSynced()) {
-                watcher.onUpdate(
-                        Collections.singleton(assembleSchema(queue.list())));
+        Watch addressSpacePlanWatch = addressSpacePlanApi.watchAddressSpacePlans(this, resyncInterval);
+        return new Watch() {
+            @Override
+            public void close() throws Exception {
+                Exception e = null;
+                try {
+                    addressSpacePlanWatch.close();
+                } catch (Exception ex) {
+                    e = ex;
+                }
+                if (e != null) {
+                    throw e;
+                }
             }
-        });
+        }
+    }
 
-        Reflector<ConfigMap, ConfigMapList> reflector = new Reflector<>(config);
-        Controller controller = new Controller(reflector);
-        controller.start();
-        return controller;
+    @Override
+    public void onUpdate(AddressSpacePlanList planList) {
     }
 
     @Override
@@ -268,19 +222,7 @@ public class ConfigMapSchemaApi implements SchemaApi, ListerWatcher<ConfigMap, C
                         .watch(watcher));
     }
 
-    @Override
-    public ConfigMapList list(ListOptions listOptions) {
-        return client.configMaps()
-                .inNamespace(namespace)
-                .withLabelIn(LabelKeys.TYPE, "address-space-plan", "address-plan", "brokered-infra-config", "standard-infra-config")
-                .list();
-    }
-
-    private Schema assembleSchema(List<ConfigMap> maps) {
-        List<AddressSpacePlan> addressSpacePlans = getAddressSpacePlans(maps);
-        List<AddressPlan> addressPlans = getAddressPlans(maps);
-        List<BrokeredInfraConfig> brokeredInfraConfigs = getBrokeredInfraConfigs(maps);
-        List<StandardInfraConfig> standardInfraConfigs = getStandardInfraConfigs(maps);
+    private Schema assembleSchema(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans, List<StandardInfraConfig> standardInfraConfigs, List<BrokeredInfraConfig> brokeredInfraConfigs) {
         log.info("Got brokered infra configs: {}", brokeredInfraConfigs);
         log.info("Got standard infra configs: {}", standardInfraConfigs);
 

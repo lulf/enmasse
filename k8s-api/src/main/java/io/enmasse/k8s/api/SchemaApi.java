@@ -13,11 +13,6 @@ import java.time.Duration;
  */
 public interface SchemaApi {
     /**
-     * List schema
-     */
-    Schema getSchema() throws Exception;
-
-    /**
      * Watch changes to schema
      */
     Watch watchSchema(Watcher<Schema> watcher, Duration resyncInterval) throws Exception;

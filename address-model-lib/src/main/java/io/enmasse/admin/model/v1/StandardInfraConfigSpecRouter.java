@@ -4,23 +4,27 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"resources", "linkCapacity"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StandardInfraConfigSpecRouter {
-    private final StandardInfraConfigSpecRouterResources resources;
-    private final String linkCapacity;
-
-    @JsonCreator
-    public StandardInfraConfigSpecRouter(@JsonProperty("resources") StandardInfraConfigSpecRouterResources resources,
-                                           @JsonProperty("linkCapacity") String linkCapacity) {
-        this.resources = resources;
-        this.linkCapacity = linkCapacity;
-    }
+    private StandardInfraConfigSpecRouterResources resources;
+    private String linkCapacity;
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public StandardInfraConfigSpecRouterResources getResources() {
         return resources;
@@ -42,5 +46,23 @@ public class StandardInfraConfigSpecRouter {
     @Override
     public int hashCode() {
         return Objects.hash(resources, linkCapacity);
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+
+    public void setResources(StandardInfraConfigSpecRouterResources resources) {
+        this.resources = resources;
+    }
+
+    public void setLinkCapacity(String linkCapacity) {
+        this.linkCapacity = linkCapacity;
     }
 }

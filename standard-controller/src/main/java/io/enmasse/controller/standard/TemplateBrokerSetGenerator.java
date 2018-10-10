@@ -5,7 +5,6 @@
 
 package io.enmasse.controller.standard;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.enmasse.address.model.*;
 import io.enmasse.admin.model.v1.AddressPlan;
@@ -44,7 +43,7 @@ public class TemplateBrokerSetGenerator implements BrokerSetGenerator {
         if (addressPlan.getAddressType().equals("topic")) {
             boolean isSharded = true;
             for (ResourceRequest resourceRequest : addressPlan.getRequiredResources()) {
-                if (resourceRequest.getResourceName().equals("broker") && resourceRequest.getAmount() < 1) {
+                if (resourceRequest.getName().equals("broker") && resourceRequest.getCredit() < 1) {
                     isSharded = false;
                     break;
                 }

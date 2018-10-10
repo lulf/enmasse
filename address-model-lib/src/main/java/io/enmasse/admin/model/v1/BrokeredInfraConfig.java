@@ -4,28 +4,38 @@
  */
 package io.enmasse.admin.model.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.Inline;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@JsonDeserialize(
+        using = JsonDeserializer.None.class
+)
+@Buildable(
+        editableEnabled = false,
+        generateBuilderPackage = false,
+        builderPackage = "io.fabric8.kubernetes.api.builder",
+        inline = @Inline(type = Doneable.class, prefix = "Doneable", value = "done")
+)
+@JsonPropertyOrder({"apiVersion", "kind", "metadata", "spec"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BrokeredInfraConfig implements InfraConfig {
-    @JsonProperty("apiVersion")
-    private final String apiVersion = "admin.enmasse.io/v1alpha1";
-    @JsonProperty("kind")
-    private final String kind = "BrokeredInfraConfig";
 
-    private final ObjectMetadata metadata;
-    private final BrokeredInfraConfigSpec spec;
+    private String apiVersion = "admin.enmasse.io/v1alpha1";
+    private String kind = "BrokeredInfraConfig";
+    private ObjectMeta metadata;
+    private BrokeredInfraConfigSpec spec;
 
-    @JsonCreator
-    private BrokeredInfraConfig(@JsonProperty("metadata") ObjectMetadata metadata,
-                                  @JsonProperty("spec") BrokeredInfraConfigSpec spec) {
-        this.metadata = metadata;
-        this.spec = spec;
-    }
+    private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     @Override
     public boolean equals(Object o) {
@@ -41,7 +51,6 @@ public class BrokeredInfraConfig implements InfraConfig {
         return Objects.hash(metadata, spec);
     }
 
-
     @Override
     public String toString() {
         return "BrokeredInfraConfig{" +
@@ -49,7 +58,7 @@ public class BrokeredInfraConfig implements InfraConfig {
                 ", spec=" + spec + "}";
     }
 
-    public ObjectMetadata getMetadata() {
+    public ObjectMeta getMetadata() {
         return metadata;
     }
 
@@ -57,25 +66,40 @@ public class BrokeredInfraConfig implements InfraConfig {
         return spec;
     }
 
-    public static class Builder {
-        private ObjectMetadata metadata;
-        private BrokeredInfraConfigSpec spec;
+    public void setMetadata(ObjectMeta metadata) {
+        this.metadata = metadata;
+    }
 
-        public Builder setMetadata(ObjectMetadata metadata) {
-            this.metadata = metadata;
-            return this;
-        }
+    @Override
+    public String getApiVersion() {
+        return apiVersion;
+    }
 
-        public Builder setSpec(BrokeredInfraConfigSpec spec) {
-            this.spec = spec;
-            return this;
-        }
+    @Override
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
 
-        public BrokeredInfraConfig build() {
-            Objects.requireNonNull(metadata);
-            Objects.requireNonNull(spec);
+    @Override
+    public String getKind() {
+        return kind;
+    }
 
-            return new BrokeredInfraConfig(metadata, spec);
-        }
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+
+    public void setSpec(BrokeredInfraConfigSpec spec) {
+        this.spec = spec;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
     }
 }

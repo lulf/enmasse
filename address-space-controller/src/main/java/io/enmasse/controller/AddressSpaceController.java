@@ -58,7 +58,7 @@ public class AddressSpaceController extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startPromise) throws Exception {
-        SchemaApi schemaApi = new ConfigMapSchemaApi(controllerClient, controllerClient.getNamespace());
+        SchemaApi schemaApi = new KubeSchemaApi(controllerClient, controllerClient.getNamespace());
         CachingSchemaProvider schemaProvider = new CachingSchemaProvider();
         schemaApi.watchSchema(schemaProvider, options.getResyncInterval());
         boolean isOpenShift = isOpenShift(controllerClient);

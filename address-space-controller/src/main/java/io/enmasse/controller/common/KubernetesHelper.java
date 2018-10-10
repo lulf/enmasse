@@ -134,6 +134,7 @@ public class KubernetesHelper implements Kubernetes {
                     .endMetadata()
                     .done();
             createRoleBinding(saName + "-admin", namespace, labels, "ClusterRole", "admin", Arrays.asList(new Subject("ServiceAccount", saName, namespace)));
+            createRoleBinding(saName + "-admin-reader", namespace, labels, "Role", "enmasse.io:admin-reader", Arrays.asList(new Subject("ServiceAccount", saName, namespace)));
         }
     }
 

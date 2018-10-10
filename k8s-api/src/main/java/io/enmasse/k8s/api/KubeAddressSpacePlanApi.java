@@ -12,19 +12,12 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.RequestConfigBuilder;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.HashSet;
 
-/**
- * Implements the AddressApi using config maps.
- */
 public class KubeAddressSpacePlanApi implements AddressSpacePlanApi, ListerWatcher<AddressSpacePlan, AddressSpacePlanList> {
 
-    private static final Logger log = LoggerFactory.getLogger(KubeAddressSpacePlanApi.class);
     private final NamespacedOpenShiftClient client;
     private final CustomResourceDefinition addressSpacePlanDefinition;
 

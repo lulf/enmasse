@@ -5,7 +5,7 @@ metadata:
   labels:
     app: enmasse
   annotations:
-    enmasse.io/defined-by: brokered-infra-config
+    enmasse.io/defined-by: default
 displayName: Unlimited
 displayOrder: 0
 shortDescription: Unlimited plan without resource restrictions.

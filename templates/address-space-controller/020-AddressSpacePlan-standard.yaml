@@ -5,7 +5,7 @@ metadata:
   labels:
     app: enmasse
   annotations:
-    enmasse.io/defined-by: standard-infra-config-with-mqtt
+    enmasse.io/defined-by: default-with-mqtt
 displayName: Unlimited
 displayOrder: 0
 shortDescription: Unlimited plan without resource restrictions.

@@ -28,6 +28,15 @@ public class StandardInfraConfigSpec {
     private StandardInfraConfigSpecBroker broker;
     private StandardInfraConfigSpecRouter router;
 
+    public StandardInfraConfigSpec() { }
+
+    public StandardInfraConfigSpec(String version, StandardInfraConfigSpecAdmin admin, StandardInfraConfigSpecBroker broker, StandardInfraConfigSpecRouter router) {
+        this.version = version;
+        this.admin = admin;
+        this.broker = broker;
+        this.router = router;
+    }
+
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public String getVersion() {

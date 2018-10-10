@@ -89,7 +89,7 @@ public class AddressController extends AbstractVerticle implements Watcher<Addre
     }
 
     @Override
-    public void onUpdate(Set<Address> addressSet) throws Exception {
+    public void onUpdate(List<Address> addressList) throws Exception {
         long start = System.nanoTime();
         Schema schema = schemaProvider.getSchema();
         if (schema == null) {
@@ -105,6 +105,7 @@ public class AddressController extends AbstractVerticle implements Watcher<Addre
 
         AddressSpaceResolver addressSpaceResolver = new AddressSpaceResolver(schema);
 
+        Set<Address> addressSet = new HashSet<>(addressList);
         Map<String, Status> previousStatus = new HashMap<>();
         for (Address address : addressSet) {
             previousStatus.put(address.getAddress(), new Status(address.getStatus()));

@@ -31,13 +31,7 @@ public class HttpApiRootService {
                     new APIGroupVersion("user.enmasse.io/v1alpha1", "v1alpha1"),
                     null);
 
-    private static final APIGroup adminApiGroup =
-            new APIGroup("admin.enmasse.io", Arrays.asList(
-                    new APIGroupVersion("admin.enmasse.io/v1alpha1", "v1alpha1")),
-                    new APIGroupVersion("admin.enmasse.io/v1alpha1", "v1alpha1"),
-                    null);
-
-    private static final APIGroupList apiGroupList = new APIGroupList(Arrays.asList(apiGroup, userApiGroup, adminApiGroup));
+    private static final APIGroupList apiGroupList = new APIGroupList(Arrays.asList(apiGroup, userApiGroup));
 
     private static void verifyAuthorized(SecurityContext securityContext, String method, String path) {
         if (!securityContext.isUserInRole(RbacSecurityContext.rbacToRole(path, method))) {
@@ -95,32 +89,5 @@ public class HttpApiRootService {
     public APIResourceList getUserApiGroupV1(@Context SecurityContext securityContext, @Context UriInfo uriInfo) {
         // verifyAuthorized(securityContext, "get", uriInfo.getPath());
         return userApiResourceList;
-    }
-
-    @GET
-    @Path("admin.enmasse.io")
-    @Produces({MediaType.APPLICATION_JSON})
-    public APIGroup getAdminApiGroup(@Context SecurityContext securityContext, @Context UriInfo uriInfo) {
-        verifyAuthorized(securityContext, "get", uriInfo.getPath());
-        return adminApiGroup;
-    }
-
-    private static final APIResourceList adminApiResourceList = new APIResourceList("admin.enmasse.io/v1alpha1",
-            Arrays.asList(
-                    new APIResource("addressspaceplans", "", true, "AddressSpacePlan",
-                            Arrays.asList("create", "delete", "get", "list", "update")),
-                    new APIResource("addressplans", "", true, "AddressPlan",
-                            Arrays.asList("create", "delete", "get", "list", "update")),
-                    new APIResource("brokeredinfraconfig", "", true, "BrokeredInfraConfig",
-                                    Arrays.asList("create", "delete", "get", "list", "update")),
-                    new APIResource("standardinfraconfig", "", true, "StandardInfraConfig",
-                                    Arrays.asList("create", "delete", "get", "list", "update"))));
-
-    @GET
-    @Path("admin.enmasse.io/v1alpha1")
-    @Produces({MediaType.APPLICATION_JSON})
-    public APIResourceList getAdminApiGroupV1(@Context SecurityContext securityContext, @Context UriInfo uriInfo) {
-        // verifyAuthorized(securityContext, "get", uriInfo.getPath());
-        return adminApiResourceList;
     }
 }

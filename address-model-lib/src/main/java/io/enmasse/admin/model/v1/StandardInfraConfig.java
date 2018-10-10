@@ -36,6 +36,13 @@ public class StandardInfraConfig implements InfraConfig {
 
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfig() { }
+
+    public StandardInfraConfig(ObjectMeta metadata, StandardInfraConfigSpec spec) {
+        this.metadata = metadata;
+        this.spec = spec;
+    }
+
     public ObjectMeta getMetadata() {
         return metadata;
     }

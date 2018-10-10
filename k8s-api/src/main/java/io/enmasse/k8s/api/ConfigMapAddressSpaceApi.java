@@ -157,7 +157,7 @@ public class ConfigMapAddressSpaceApi implements AddressSpaceApi, ListerWatcher<
     }
 
     @Override
-    public Watch watchAddressSpaces(Watcher<Set<AddressSpace>> watcher, Duration resyncInterval) {
+    public Watch watchAddressSpaces(Watcher<AddressSpace> watcher, Duration resyncInterval) {
         WorkQueue<ConfigMap> queue = new FifoQueue<>(config -> config.getMetadata().getName());
         Reflector.Config<ConfigMap, ConfigMapList> config = new Reflector.Config<>();
         config.setClock(Clock.systemUTC());
@@ -169,7 +169,7 @@ public class ConfigMapAddressSpaceApi implements AddressSpaceApi, ListerWatcher<
             if (queue.hasSynced()) {
                 watcher.onUpdate(queue.list().stream()
                         .map(this::getAddressSpaceFromConfig)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toList()));
             }
         });
 

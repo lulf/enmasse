@@ -25,6 +25,12 @@ public class StandardInfraConfigSpecRouterResources {
     private String memory;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfigSpecRouterResources() { }
+
+    public StandardInfraConfigSpecRouterResources(String memory) {
+        this.memory = memory;
+    }
+
     public String getMemory() {
         return memory;
     }

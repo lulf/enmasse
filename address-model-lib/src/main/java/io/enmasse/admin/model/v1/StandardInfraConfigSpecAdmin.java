@@ -25,6 +25,12 @@ public class StandardInfraConfigSpecAdmin {
     private StandardInfraConfigSpecAdminResources resources;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfigSpecAdmin() { }
+
+    public StandardInfraConfigSpecAdmin(StandardInfraConfigSpecAdminResources resources) {
+        this.resources = resources;
+    }
+
     public StandardInfraConfigSpecAdminResources getResources() {
         return resources;
     }

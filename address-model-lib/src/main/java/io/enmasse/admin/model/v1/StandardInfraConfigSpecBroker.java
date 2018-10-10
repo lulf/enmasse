@@ -26,6 +26,13 @@ public class StandardInfraConfigSpecBroker {
     private String addressFullPolicy;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfigSpecBroker() { }
+
+    public StandardInfraConfigSpecBroker(StandardInfraConfigSpecBrokerResources resources, String addressFullPolicy) {
+        this.resources = resources;
+        this.addressFullPolicy = addressFullPolicy;
+    }
+
     public StandardInfraConfigSpecBrokerResources getResources() {
         return resources;
     }

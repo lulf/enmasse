@@ -50,7 +50,7 @@ public class AddressSpacePlan implements HasMetadata {
     }
 
     public List<String> getAddressPlans() {
-        return Collections.unmodifiableList(addressPlans);
+        return addressPlans;
     }
 
     public void setShortDescription(String shortDescription) {
@@ -141,5 +141,9 @@ public class AddressSpacePlan implements HasMetadata {
     @JsonAnySetter
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
+    }
+
+    public void setAddressPlans(List<String> addressPlans) {
+        this.addressPlans = addressPlans;
     }
 }

@@ -15,6 +15,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayList;
 
 public class KubeAddressSpacePlanApi implements AddressSpacePlanApi, ListerWatcher<AddressSpacePlan, AddressSpacePlanList> {
 
@@ -41,7 +42,7 @@ public class KubeAddressSpacePlanApi implements AddressSpacePlanApi, ListerWatch
     }
 
     @Override
-    public Watch watchAddressSpacePlans(Watcher<AddressSpacePlanList> watcher, Duration resyncInterval) {
+    public Watch watchAddressSpacePlans(Watcher<AddressSpacePlan> watcher, Duration resyncInterval) {
         WorkQueue<AddressSpacePlan> queue = new FifoQueue<>(config -> config.getMetadata().getName());
         Reflector.Config<AddressSpacePlan, AddressSpacePlanList> config = new Reflector.Config<>();
         config.setClock(Clock.systemUTC());
@@ -51,9 +52,7 @@ public class KubeAddressSpacePlanApi implements AddressSpacePlanApi, ListerWatch
         config.setWorkQueue(queue);
         config.setProcessor(map -> {
             if (queue.hasSynced()) {
-                AddressSpacePlanList list = new AddressSpacePlanList();
-                list.setItems(queue.list());
-                watcher.onUpdate(list);
+                watcher.onUpdate(new ArrayList<>(queue.list()));
             }
         });
 

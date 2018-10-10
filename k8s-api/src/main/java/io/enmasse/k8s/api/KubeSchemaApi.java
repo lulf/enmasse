@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.enmasse.address.model.*;
 import io.enmasse.admin.model.v1.*;
 import io.enmasse.config.AnnotationKeys;
+import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,22 @@ public class KubeSchemaApi implements SchemaApi {
         this.addressPlanApi = addressPlanApi;
         this.brokeredInfraConfigApi = brokeredInfraConfigApi;
         this.standardInfraConfigApi = standardInfraConfigApi;
+    }
+
+    public static KubeSchemaApi create(NamespacedOpenShiftClient openShiftClient, Map<String, String> env) {
+        CustomResourceDefinition addressSpacePlanDefinition = openShiftClient.customResourceDefinitions().withName(env.getOrDefault("ADDRESS_SPACE_PLAN_CRD_NAME", "addressspaceplans.admin.enmasse.io")).get();
+        AddressSpacePlanApi addressSpacePlanApi = new KubeAddressSpacePlanApi(openShiftClient, addressSpacePlanDefinition);
+
+        CustomResourceDefinition addressPlanDefinition = openShiftClient.customResourceDefinitions().withName(env.getOrDefault("ADDRESS_PLAN_CRD_NAME", "addressplans.admin.enmasse.io")).get();
+        AddressPlanApi addressPlanApi = new KubeAddressPlanApi(openShiftClient, addressPlanDefinition);
+
+        CustomResourceDefinition brokeredInfraConfigDefinition = openShiftClient.customResourceDefinitions().withName(env.getOrDefault("BROKERED_INFRA_CONFIG_CRD_NAME", "brokeredinfraconfigs.admin.enmasse.io")).get();
+        BrokeredInfraConfigApi brokeredInfraConfigApi = new KubeBrokeredInfraConfigApi(openShiftClient, brokeredInfraConfigDefinition);
+
+        CustomResourceDefinition standardInfraConfigDefinition = openShiftClient.customResourceDefinitions().withName(env.getOrDefault("STANDARD_INFRA_CONFIG_CRD_NAME", "standardinfraconfigs.admin.enmasse.io")).get();
+        StandardInfraConfigApi standardInfraConfigApi = new KubeStandardInfraConfigApi(openShiftClient, standardInfraConfigDefinition);
+
+        return new KubeSchemaApi(addressSpacePlanApi, addressPlanApi, brokeredInfraConfigApi, standardInfraConfigApi);
     }
 
     private void validateAddressSpacePlan(AddressSpacePlan addressSpacePlan, List<AddressPlan> addressPlans, List<String> infraTemplateNames) {
@@ -186,65 +204,47 @@ public class KubeSchemaApi implements SchemaApi {
     @Override
     public Watch watchSchema(Watcher<Schema> watcher, Duration resyncInterval) {
         List<Watch> watches = new ArrayList<>();
-        watches.add(addressSpacePlanApi.watchAddressSpacePlans(item -> {
-            currentAddressSpacePlans = item.getItems();
-            Schema schema = assembleSchema(currentAddressSpacePlans, currentAddressPlans, currentStandardInfraConfigs, currentBrokeredInfraConfigs);
-            if (schema != null) {
-                synchronized (watcher) {
-                    watcher.onUpdate(schema);
-                }
-            }
+        watches.add(addressSpacePlanApi.watchAddressSpacePlans(items -> {
+            currentAddressSpacePlans = items;
+            updateSchema(watcher);
         }, resyncInterval));
 
-        watches.add(addressPlanApi.watchAddressPlans(item -> {
-            currentAddressPlans = item.getItems();
-            Schema schema = assembleSchema(currentAddressSpacePlans, currentAddressPlans, currentStandardInfraConfigs, currentBrokeredInfraConfigs);
-            if (schema != null) {
-                synchronized (watcher) {
-                    watcher.onUpdate(schema);
-                }
-            }
-
-        }, resyncInterval));
-        watches.add(brokeredInfraConfigApi.watchBrokeredInfraConfigs(item -> {
-            currentBrokeredInfraConfigs = item.getItems();
-            Schema schema = assembleSchema(currentAddressSpacePlans, currentAddressPlans, currentStandardInfraConfigs, currentBrokeredInfraConfigs);
-            if (schema != null) {
-                synchronized (watcher) {
-                    watcher.onUpdate(schema);
-                }
-            }
-
+        watches.add(addressPlanApi.watchAddressPlans(items -> {
+            currentAddressPlans = items;
+            updateSchema(watcher);
         }, resyncInterval));
 
-        watches.add(standardInfraConfigApi.watchStandardInfraConfigs(item -> {
-            currentStandardInfraConfigs = item.getItems();
-            Schema schema = assembleSchema(currentAddressSpacePlans, currentAddressPlans, currentStandardInfraConfigs, currentBrokeredInfraConfigs);
-            if (schema != null) {
-                synchronized (watcher) {
-                    watcher.onUpdate(schema);
-                }
-            }
+        watches.add(brokeredInfraConfigApi.watchBrokeredInfraConfigs(items -> {
+            currentBrokeredInfraConfigs = items;
+            updateSchema(watcher);
+        }, resyncInterval));
 
+        watches.add(standardInfraConfigApi.watchStandardInfraConfigs(items -> {
+            currentStandardInfraConfigs = items;
+            updateSchema(watcher);
         }, resyncInterval));
 
 
-        return new Watch() {
-            @Override
-            public void close() throws Exception {
-                Exception e = null;
-                for (Watch watch : watches) {
-                    try {
-                        watch.close();
-                    } catch (Exception ex) {
-                        e = ex;
-                    }
+        return () -> {
+            Exception e = null;
+            for (Watch watch : watches) {
+                try {
+                    watch.close();
+                } catch (Exception ex) {
+                    e = ex;
                 }
-                if (e != null) {
-                    throw e;
-                }
+            }
+            if (e != null) {
+                throw e;
             }
         };
+    }
+
+    private synchronized void updateSchema(Watcher<Schema> watcher) throws Exception {
+        Schema schema = assembleSchema(currentAddressSpacePlans, currentAddressPlans, currentStandardInfraConfigs, currentBrokeredInfraConfigs);
+        if (schema != null) {
+            watcher.onUpdate(Collections.singletonList(schema));
+        }
     }
 
     private Schema assembleSchema(List<AddressSpacePlan> addressSpacePlans, List<AddressPlan> addressPlans, List<StandardInfraConfig> standardInfraConfigs, List<BrokeredInfraConfig> brokeredInfraConfigs) {

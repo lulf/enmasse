@@ -26,6 +26,13 @@ public class StandardInfraConfigSpecRouter {
     private String linkCapacity;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfigSpecRouter() { }
+
+    public StandardInfraConfigSpecRouter(StandardInfraConfigSpecRouterResources resources, String linkCapacity) {
+        this.resources = resources;
+        this.linkCapacity = linkCapacity;
+    }
+
     public StandardInfraConfigSpecRouterResources getResources() {
         return resources;
     }

@@ -40,12 +40,13 @@ public class AddressPlan implements HasMetadata {
     private String shortDescription;
     private String uuid;
     private String addressType;
+
     private List<ResourceRequest> requiredResources;
 
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public List<ResourceRequest> getRequiredResources() {
-        return Collections.unmodifiableList(requiredResources);
+        return requiredResources;
     }
 
     public ObjectMeta getMetadata() {

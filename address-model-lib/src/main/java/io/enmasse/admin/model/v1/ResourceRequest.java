@@ -25,6 +25,13 @@ public class ResourceRequest {
     private double credit;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public ResourceRequest() { }
+
+    public ResourceRequest(String name, double credit) {
+        this.name = name;
+        this.credit = credit;
+    }
+
     public String getName() {
         return name;
     }

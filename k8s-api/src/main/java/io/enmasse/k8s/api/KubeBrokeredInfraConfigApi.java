@@ -15,6 +15,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayList;
 
 public class KubeBrokeredInfraConfigApi implements BrokeredInfraConfigApi, ListerWatcher<BrokeredInfraConfig, BrokeredInfraConfigList> {
 
@@ -41,7 +42,7 @@ public class KubeBrokeredInfraConfigApi implements BrokeredInfraConfigApi, Liste
     }
 
     @Override
-    public Watch watchBrokeredInfraConfigs(Watcher<BrokeredInfraConfigList> watcher, Duration resyncInterval) {
+    public Watch watchBrokeredInfraConfigs(Watcher<BrokeredInfraConfig> watcher, Duration resyncInterval) {
         WorkQueue<BrokeredInfraConfig> queue = new FifoQueue<>(config -> config.getMetadata().getName());
         Reflector.Config<BrokeredInfraConfig, BrokeredInfraConfigList> config = new Reflector.Config<>();
         config.setClock(Clock.systemUTC());
@@ -51,9 +52,7 @@ public class KubeBrokeredInfraConfigApi implements BrokeredInfraConfigApi, Liste
         config.setWorkQueue(queue);
         config.setProcessor(map -> {
             if (queue.hasSynced()) {
-                BrokeredInfraConfigList list = new BrokeredInfraConfigList();
-                list.setItems(queue.list());
-                watcher.onUpdate(list);
+                watcher.onUpdate(new ArrayList<>(queue.list()));
             }
         });
 

@@ -7,6 +7,7 @@ package io.enmasse.k8s.api;
 import io.enmasse.address.model.*;
 import io.enmasse.admin.model.v1.*;
 import io.enmasse.config.AnnotationKeys;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -30,14 +31,16 @@ public class TestSchemaApi implements SchemaApi {
                                                 .setName("anycast")
                                                 .setDescription("Test direct")
                                                 .setAddressPlans(Arrays.asList(
-                                                        new AddressPlan.Builder()
-                                                                .setMetadata(new ObjectMetadata.Builder()
-                                                                        .setName("plan1")
+                                                        new AddressPlanBuilder()
+                                                                .withMetadata(new ObjectMetaBuilder()
+                                                                        .withName("plan1")
                                                                         .build())
-                                                                .setAddressType("anycast")
-                                                                .setRequiredResources(Collections.singletonList(
-                                                                        new ResourceRequest("router", 1.0)
-                                                                ))
+                                                                .withAddressType("anycast")
+                                                                .addToRequiredResources(
+                                                                        new ResourceRequestBuilder()
+                                                                        .withName("router")
+                                                                        .withCredit(1.0)
+                                                                        .build())
                                                                 .build()
                                                 ))
                                                 .build(),
@@ -45,42 +48,49 @@ public class TestSchemaApi implements SchemaApi {
                                                 .setName("queue")
                                                 .setDescription("Test queue")
                                                 .setAddressPlans(Arrays.asList(
-                                                        new AddressPlan.Builder()
-                                                                .setMetadata(new ObjectMetadata.Builder()
-                                                                        .setName("pooled-inmemory")
+                                                        new AddressPlanBuilder()
+                                                                .withMetadata(new ObjectMetaBuilder()
+                                                                        .withName("pooled-inmemory")
                                                                         .build())
-                                                                .setAddressType("queue")
-                                                                .setRequiredResources(Collections.singletonList(
-                                                                        new ResourceRequest("broker", 0.1)
-                                                                ))
+                                                                .withAddressType("queue")
+                                                                .addToRequiredResources(
+                                                                        new ResourceRequestBuilder()
+                                                                                .withName("broker")
+                                                                                .withCredit(0.1)
+                                                                                .build())
                                                                 .build(),
-                                                        new AddressPlan.Builder()
-                                                                .setMetadata(new ObjectMetadata.Builder()
-                                                                        .setName("plan1")
+                                                        new AddressPlanBuilder()
+                                                                .withMetadata(new ObjectMetaBuilder()
+                                                                        .withName("plan1")
                                                                         .build())
-                                                                .setAddressType("queue")
-                                                                .setRequiredResources(Collections.singletonList(
-                                                                        new ResourceRequest("broker", 1.0)
-                                                                ))
-                                                                .build()
-                                                ))
-                                                .build()
+                                                                .withAddressType("queue")
+                                                                .addToRequiredResources(
+                                                                        new ResourceRequestBuilder()
+                                                                                .withName("broker")
+                                                                                .withCredit(1.0)
+                                                                                .build())
+                                                                .build())
+                                                ).build()
                                 ))
-                                .setInfraConfigs(Arrays.asList((InfraConfig) () -> new ObjectMetadata.Builder()
-                                        .setName("infra")
+                                .setInfraConfigs(Arrays.asList(new StandardInfraConfigBuilder()
+                                        .withMetadata(new ObjectMetaBuilder()
+                                                .withName("infra")
+                                                .build())
                                         .build()))
                                 .setInfraConfigType(json -> null)
                                 .setAddressSpacePlans(Collections.singletonList(
-                                        new AddressSpacePlan.Builder()
-                                                .setMetadata(new ObjectMetadata.Builder()
-                                                        .setAnnotations(Collections.singletonMap(AnnotationKeys.DEFINED_BY, "infra"))
-                                                        .setName("myplan")
+                                        new AddressSpacePlanBuilder()
+                                                .withMetadata(new ObjectMetaBuilder()
+                                                        .addToAnnotations(AnnotationKeys.DEFINED_BY, "infra")
+                                                        .withName("myplan")
                                                         .build())
-                                                .setAddressSpaceType("type1")
-                                                .setResources(Collections.singletonList(
-                                                        new ResourceAllowance("broker", 0.0, 1.0)
-                                                ))
-                                                .setAddressPlans(Collections.singletonList("plan1"))
+                                                .withAddressSpaceType("type1")
+                                                .addToResources(new ResourceAllowanceBuilder()
+                                                        .withName("broker")
+                                                        .withMin(0.0)
+                                                        .withMax(1.0)
+                                                        .build())
+                                                .addToAddressPlans("plan1")
                                                 .build()
                                 ))
                                 .build()

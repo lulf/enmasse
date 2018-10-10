@@ -30,6 +30,14 @@ public class ResourceAllowance {
     private double min;
     private double max;
 
+    public ResourceAllowance() { }
+
+    public ResourceAllowance(String name, double min, double max) {
+        this.name = name;
+        this.min = min;
+        this.max = max;
+    }
+
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
     public String getName() {

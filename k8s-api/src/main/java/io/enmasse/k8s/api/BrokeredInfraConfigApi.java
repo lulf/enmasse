@@ -4,10 +4,10 @@
  */
 package io.enmasse.k8s.api;
 
-import io.enmasse.admin.model.v1.BrokeredInfraConfigList;
+import io.enmasse.admin.model.v1.BrokeredInfraConfig;
 
 import java.time.Duration;
 
 public interface BrokeredInfraConfigApi {
-    Watch watchBrokeredInfraConfigs(Watcher<BrokeredInfraConfigList> watcher, Duration resyncInterval);
+    Watch watchBrokeredInfraConfigs(Watcher<BrokeredInfraConfig> watcher, Duration resyncInterval);
 }

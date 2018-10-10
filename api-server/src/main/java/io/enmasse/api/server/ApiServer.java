@@ -55,7 +55,7 @@ public class ApiServer extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startPromise) throws Exception {
-        SchemaApi schemaApi = new KubeSchemaApi(client, options.getNamespace());
+        SchemaApi schemaApi = KubeSchemaApi.create(client, System.getenv());
         CachingSchemaProvider schemaProvider = new CachingSchemaProvider();
         schemaApi.watchSchema(schemaProvider, options.getResyncInterval());
 

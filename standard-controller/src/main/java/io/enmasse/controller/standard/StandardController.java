@@ -4,10 +4,7 @@
  */
 package io.enmasse.controller.standard;
 
-import io.enmasse.admin.model.v1.AddressSpacePlan;
-import io.enmasse.admin.model.v1.StandardInfraConfig;
 import io.enmasse.k8s.api.*;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.vertx.core.Vertx;
@@ -52,19 +49,7 @@ public class StandardController {
 
         NamespacedOpenShiftClient openShiftClient = new DefaultOpenShiftClient();
 
-        CustomResourceDefinition addressSpacePlanDefinition = openShiftClient.customResourceDefinitions().withName(getEnvOrThrow(env, "ADDRESS_SPACE_PLAN_CRD_NAME")).get();
-        AddressSpacePlanApi addressSpacePlanApi = new KubeAddressSpacePlanApi(openShiftClient, addressSpacePlanDefinition);
-
-        CustomResourceDefinition addressPlanDefinition = openShiftClient.customResourceDefinitions().withName(getEnvOrThrow(env, "ADDRESS_PLAN_CRD_NAME")).get();
-        AddressPlanApi addressPlanApi = new KubeAddressPlanApi(openShiftClient, addressPlanDefinition);
-
-        CustomResourceDefinition brokeredInfraConfigDefinition = openShiftClient.customResourceDefinitions().withName(getEnvOrThrow(env, "BROKERED_INFRA_CONFIG_CRD_NAME")).get();
-        BrokeredInfraConfigApi brokeredInfraConfigApi = new KubeBrokeredInfraConfigApi(openShiftClient, brokeredInfraConfigDefinition);
-
-        CustomResourceDefinition standardInfraConfigDefinition = openShiftClient.customResourceDefinitions().withName(getEnvOrThrow(env, "STANDARD_INFRA_CONFIG_CRD_NAME")).get();
-        StandardInfraConfigApi standardInfraConfigApi = new KubeStandardInfraConfigApi(openShiftClient, standardInfraConfigDefinition);
-
-        SchemaApi schemaApi = new KubeSchemaApi(addressSpacePlanApi, addressPlanApi, brokeredInfraConfigApi, standardInfraConfigApi);
+        SchemaApi schemaApi = KubeSchemaApi.create(openShiftClient, env);
         CachingSchemaProvider schemaProvider = new CachingSchemaProvider();
         schemaApi.watchSchema(schemaProvider, resyncInterval);
 

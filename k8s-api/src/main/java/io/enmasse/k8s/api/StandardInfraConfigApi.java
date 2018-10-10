@@ -4,10 +4,10 @@
  */
 package io.enmasse.k8s.api;
 
-import io.enmasse.admin.model.v1.StandardInfraConfigList;
+import io.enmasse.admin.model.v1.StandardInfraConfig;
 
 import java.time.Duration;
 
 public interface StandardInfraConfigApi {
-    Watch watchStandardInfraConfigs(Watcher<StandardInfraConfigList> watcher, Duration resyncInterval);
+    Watch watchStandardInfraConfigs(Watcher<StandardInfraConfig> watcher, Duration resyncInterval);
 }

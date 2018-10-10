@@ -24,5 +24,5 @@ public interface AddressApi {
     boolean replaceAddress(Address address);
     boolean deleteAddress(Address address);
 
-    Watch watchAddresses(Watcher<Set<Address>> watcher, Duration resyncInterval) throws Exception;
+    Watch watchAddresses(Watcher<Address> watcher, Duration resyncInterval) throws Exception;
 }

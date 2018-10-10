@@ -26,6 +26,13 @@ public class StandardInfraConfigSpecBrokerResources {
     private String storage;
     private Map<String, Object> additionalProperties = new HashMap<>(0);
 
+    public StandardInfraConfigSpecBrokerResources() { }
+
+    public StandardInfraConfigSpecBrokerResources(String memory, String storage) {
+        this.memory = memory;
+        this.storage = storage;
+    }
+
     public String getMemory() {
         return memory;
     }

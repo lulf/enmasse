@@ -2,7 +2,6 @@
 //
 //
 :parent-context: {context}
-:context: managing-users
 
 [id='managing-users-{context}']
 

@@ -1,0 +1,24 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: enmasse.io:validation
+webhooks:
+- name: crdvalidation
+  rules:
+  - apiGroups:
+    - admin.enmasse.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - addressplans
+    - addressspaceplans
+    - standardinfraconfigs
+    - brokeredinfraconfigs
+  clientConfig:
+    service:
+      namespace: ${NAMESPACE}
+      name: api-server
+

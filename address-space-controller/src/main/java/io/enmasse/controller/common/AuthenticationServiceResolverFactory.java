@@ -4,9 +4,9 @@
  */
 package io.enmasse.controller.common;
 
-import io.enmasse.address.model.AuthenticationServiceResolver;
+import io.enmasse.address.model.AuthenticationServiceRegistry;
 import io.enmasse.address.model.AuthenticationServiceType;
 
 public interface AuthenticationServiceResolverFactory {
-    AuthenticationServiceResolver getResolver(AuthenticationServiceType authenticationServiceType);
+    AuthenticationServiceRegistry getResolver(AuthenticationServiceType authenticationServiceType);
 }

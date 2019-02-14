@@ -89,6 +89,7 @@ public class AddressSpaceController {
         AuthenticationServiceResolverFactory resolverFactory = createResolverFactory(options);
         CertProviderFactory certProviderFactory = createCertProviderFactory(options, certManager);
         AuthController authController = new AuthController(certManager, eventLogger, certProviderFactory);
+        AuthenticationServiceRegistry authenticationServiceRegistry = new KubeAuthenticationServiceRegistry();
 
         InfraResourceFactory infraResourceFactory = new TemplateInfraResourceFactory(kubernetes, resolverFactory, isOpenShift);
 
@@ -197,7 +198,7 @@ public class AddressSpaceController {
     private AuthenticationServiceResolverFactory createResolverFactory(AddressSpaceControllerOptions options) {
 
         return type -> {
-            AuthenticationServiceResolver resolver = createAuthServiceResolver(type, options);
+            AuthenticationServiceRegistry resolver = createAuthServiceResolver(type, options);
             if (resolver == null) {
                 throw new IllegalArgumentException("Unsupported resolver of type " + type);
             }
@@ -205,17 +206,17 @@ public class AddressSpaceController {
         };
     }
 
-    private AuthenticationServiceResolver createAuthServiceResolver(AuthenticationServiceType type, AddressSpaceControllerOptions options) {
-        AuthenticationServiceResolver resolver = null;
+    private AuthenticationServiceRegistry createAuthServiceResolver(AuthenticationServiceType type, AddressSpaceControllerOptions options) {
+        AuthenticationServiceRegistry resolver = null;
         switch (type) {
             case NONE:
-                resolver = new NoneAuthenticationServiceResolver("none-authservice", 5671);
+                resolver = new NoneAuthenticationServiceRegistry("none-authservice", 5671);
                 break;
             case STANDARD:
                 resolver = options.getStandardAuthService().map(authService -> {
                     ConfigMap config = controllerClient.configMaps().withName(authService.getConfigMap()).get();
                     if (config != null) {
-                        return new StandardAuthenticationServiceResolver(
+                        return new StandardAuthenticationServiceRegistry(
                                 config.getData().get("hostname"),
                                 Integer.parseInt(config.getData().get("port")),
                                 config.getData().get("oauthUrl"),
@@ -227,7 +228,7 @@ public class AddressSpaceController {
                 }).orElse(null);
                 break;
             case EXTERNAL:
-                resolver = new ExternalAuthenticationServiceResolver();
+                resolver = new ExternalAuthenticationServiceRegistry();
                 break;
         }
 

@@ -7,11 +7,11 @@ package io.enmasse.controller.common;
 
 import io.enmasse.address.model.AddressSpace;
 import io.enmasse.address.model.AuthenticationService;
-import io.enmasse.address.model.AuthenticationServiceResolver;
+import io.enmasse.address.model.AuthenticationServiceRegistry;
 
 import java.util.Optional;
 
-public class ExternalAuthenticationServiceResolver implements AuthenticationServiceResolver {
+public class ExternalAuthenticationServiceRegistry implements AuthenticationServiceRegistry {
 
     @Override
     public String getHost(AuthenticationService authService) {

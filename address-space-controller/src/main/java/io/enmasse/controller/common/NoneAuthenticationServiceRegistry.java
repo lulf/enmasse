@@ -6,7 +6,7 @@ package io.enmasse.controller.common;
 
 import io.enmasse.address.model.AddressSpace;
 import io.enmasse.address.model.AuthenticationService;
-import io.enmasse.address.model.AuthenticationServiceResolver;
+import io.enmasse.address.model.AuthenticationServiceRegistry;
 import io.enmasse.config.AnnotationKeys;
 
 import java.util.Optional;
@@ -14,11 +14,11 @@ import java.util.Optional;
 /**
  * Resolves the none authentication service host name.
  */
-public class NoneAuthenticationServiceResolver implements AuthenticationServiceResolver {
+public class NoneAuthenticationServiceRegistry implements AuthenticationServiceRegistry {
     private final String host;
     private final int port;
 
-    public NoneAuthenticationServiceResolver(String host, int port) {
+    public NoneAuthenticationServiceRegistry(String host, int port) {
         this.host = host;
         this.port = port;
     }

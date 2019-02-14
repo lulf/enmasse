@@ -11,6 +11,8 @@ import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import io.sundr.builder.annotations.Inline;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Buildable(
@@ -26,8 +28,12 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AuthenticationServiceSpec extends AbstractWithAdditionalProperties {
 
+    @NotNull @Valid
     private String host;
+
+    @NotNull @Valid
     private int port;
+
     private String realm;
     private String caSecretName;
     private String clientSecretName;

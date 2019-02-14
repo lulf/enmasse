@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import io.enmasse.address.model.AddressSpace;
 import io.enmasse.address.model.AddressSpaceBuilder;
-import io.enmasse.address.model.AuthenticationServiceResolver;
+import io.enmasse.address.model.AuthenticationServiceRegistry;
 import io.enmasse.address.model.CertSpec;
 import io.enmasse.address.model.EndpointSpecBuilder;
 import io.enmasse.admin.model.v1.StandardInfraConfig;
@@ -54,7 +54,7 @@ public class TemplateInfraResourceFactoryTest extends JULInitializingTest {
         openShiftServer.before();
         client = openShiftServer.getOpenshiftClient();
         client.secrets().createNew().editOrNewMetadata().withName("certs").endMetadata().addToData("tls.crt", "cert").done();
-        AuthenticationServiceResolver authServiceResolver = mock(AuthenticationServiceResolver.class);
+        AuthenticationServiceRegistry authServiceResolver = mock(AuthenticationServiceRegistry.class);
         when(authServiceResolver.getHost(any())).thenReturn("example.com");
         when(authServiceResolver.getPort(any())).thenReturn(5671);
         when(authServiceResolver.getCaSecretName(any())).thenReturn(Optional.of("certs"));

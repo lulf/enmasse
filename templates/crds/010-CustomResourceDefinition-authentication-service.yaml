@@ -1,0 +1,39 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: authenticationservices.admin.enmasse.io
+  labels:
+    app: enmasse
+spec:
+  group: admin.enmasse.io
+  version: v1beta1
+  scope: Namespaced
+  names:
+    kind: AuthenticationService
+    listKind: AuthenticationServiceList
+    singular: authenticationservice
+    plural: authenticationservices
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          type: object
+          required:
+          - host
+          - port
+          - realm
+          properties:
+            host:
+              type: string
+            port:
+              type: integer
+            realm:
+              type: string
+            caSecretName:
+              type: string
+            clientSecretName:
+              type: string

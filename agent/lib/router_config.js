@@ -59,7 +59,7 @@ function same_autolink_definition (a, b) {
 }
 
 function autolink_describe (a) {
-    return 'autolink ' + a.name + ' (dir: ' + a.direction + ', addr: ' + a.addr + ')';
+    return 'autolink ' + a.name + ' (dir: ' + a.direction + ', address: ' + a.addr + ')';
 }
 
 function linkroute_compare (a, b) {
@@ -352,16 +352,16 @@ function desired_address_config(high_level_address_definitions) {
                 for (var j in def.allocated_to) {
                     var brokerStatus = def.allocated_to[j];
                     if (brokerStatus.state === 'Active') {
-                        config.add_autolink_pair({addr:def.address, containerId: brokerStatus.containerId});
+                        config.add_autolink_pair({address:def.address, containerId: brokerStatus.containerId});
                     } else if (brokerStatus.state === 'Migrating') {
-                        config.add_autolink_pair({addr:def.address, containerId: brokerStatus.containerId});
+                        config.add_autolink_pair({address:def.address, containerId: brokerStatus.containerId});
                     } else if (brokerStatus.state === 'Draining') {
-                        config.add_autolink_in({addr:def.address, containerId: brokerStatus.containerId});
+                        config.add_autolink_in({address:def.address, containerId: brokerStatus.containerId});
                     }
                 }
             } else {
                 log.debug("Constructing old config for queue %s", def.address);
-                config.add_autolink_pair({addr:def.address, containerId: def.address});
+                config.add_autolink_pair({address:def.address, containerId: def.address});
             }
         } else if (def.type === 'topic') {
             if (def.allocated_to) {

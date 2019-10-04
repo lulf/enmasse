@@ -49,6 +49,7 @@ import io.enmasse.user.model.v1.User;
 import io.enmasse.user.model.v1.UserBuilder;
 import io.enmasse.user.model.v1.UserCrd;
 import io.enmasse.user.model.v1.UserList;
+import io.enmasse.user.model.v1.UserSpecBuilder;
 import io.fabric8.kubernetes.api.model.ListMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 
@@ -194,9 +195,9 @@ public class HttpUserService {
     private User setUserDefaults(User user, String namespace) {
         if (user.getMetadata().getNamespace() == null) {
             user = new UserBuilder(user)
-                    .editOrNewMetadata()
-                    .withNamespace(namespace)
-                    .endMetadata()
+                    .withMetadata(new ObjectMetaBuilder(user.getMetadata())
+                            .withNamespace(namespace)
+                            .build())
                     .build();
         }
         return user;
@@ -300,20 +301,13 @@ public class HttpUserService {
     }
 
     private User overrideNameAndNamespace(User existingUser, User replacement) {
-
-        return new UserBuilder(replacement)
-
-                .editOrNewSpec()
-                .withUsername(existingUser.getSpec().getUsername())
-                .endSpec()
-
-                .editOrNewMetadata()
-                .withName(existingUser.getMetadata().getName())
-                .withNamespace(existingUser.getMetadata().getNamespace())
-                .endMetadata()
-
-                .build();
-
+        replacement = new UserBuilder(replacement)
+                .withSpec(new UserSpecBuilder(replacement.getSpec())
+                        .withUsername(existingUser.getSpec().getUsername())
+                        .build())
+                .withMetadata(new ObjectMetaBuilder(existingUser.getMetadata())
+                        .withNamespace(existingUser.getMetadata().getNamespace()).build()).build();
+        return replacement;
     }
 
     @DELETE

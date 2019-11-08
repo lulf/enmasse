@@ -39,7 +39,7 @@ const ANNOTATION_VERSION = "enmasse.io/version"
 const ENV_VERSION = "VERSION"
 
 type AddressSpaceControllerDeployment struct {
-	client    *kubernetes.Clientset
+	client    kubernetes.Interface
 	config    *rest.Config
 	scheme    *runtime.Scheme
 	namespace string

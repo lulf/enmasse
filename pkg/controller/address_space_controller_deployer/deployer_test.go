@@ -13,12 +13,12 @@ import (
 )
 
 func TestPerformDeployment(t *testing.T) {
-	client := fake.NewSimpleClientSet()
-	d := &AddressSpaceCOntrollerDeployment{
-		client: client,
-		config: nil,
-		scheme: scheme.Scheme,
-		"test",
+	client := fake.NewSimpleClientset()
+	d := &AddressSpaceControllerDeployment{
+		client:    client,
+		config:    nil,
+		scheme:    scheme.Scheme,
+		namespace: "test",
 	}
 
 	err := d.ensureDeployment()

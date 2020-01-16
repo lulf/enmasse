@@ -59,8 +59,10 @@ spec:
           value: "true"
         - name: CONTROLLER_ENABLE_MESSAGING_USER
           value: "true"
+        - name: ADDRSS_SPACE_CONTROLLER_MEMORY_LIMIT
+          value: "1Gi"
         - name: ADDRESS_SPACE_CONTROLLER_IMAGE
-          value: ${ADDRESS_SPACE_CONTROLLER_IMAGE}
+          value: docker.io/lulf/address-space-controller:latest
         - name: CONTROLLER_MANAGER_IMAGE
           value: ${CONTROLLER_MANAGER_IMAGE}
         - name: IOT_AUTH_SERVICE_IMAGE

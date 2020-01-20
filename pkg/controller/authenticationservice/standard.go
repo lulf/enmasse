@@ -101,6 +101,10 @@ func applyStandardAuthServiceDeployment(authservice *adminv1beta1.Authentication
 
 	install.ApplyDeploymentDefaults(deployment, "standard-authservice", *authservice.Spec.Standard.DeploymentName)
 
+	if authservice.Spec.Standard.Replicas != nil {
+		deployment.Spec.Replicas = authservice.Spec.Standard.Replicas
+	}
+
 	install.OverrideSecurityContextFsGroup("standard-authservice", authservice.Spec.Standard.SecurityContext, deployment)
 
 	if err := install.ApplyInitContainerWithError(deployment, "keycloak-plugin", func(container *corev1.Container) error {

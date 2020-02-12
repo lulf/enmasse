@@ -67,7 +67,7 @@ public class MetricsReporterController implements Controller {
             // Only check routers if we have some defined. For brokered address space, these metrics will not exist
             if (!addressSpace.getStatus().getRouters().isEmpty()) {
                 int totalNotConnected = 0;
-                int totalUndelivered = 0;
+                long totalUndelivered = 0;
 
                 Set<String> knownRouters = addressSpace.getStatus().getRouters().stream()
                         .map(AddressSpaceStatusRouter::getId)
@@ -83,8 +83,10 @@ public class MetricsReporterController implements Controller {
                     }
 
                     // Verify that we have direct connections to all other routers
-                    totalUndelivered += routerStatus.getUndelivered();
-                    routerMeshUndelivered.add(new MetricValue(routerStatus.getUndelivered(), new MetricLabel("name", addressSpace.getMetadata().getName()), new MetricLabel("namespace", addressSpace.getMetadata().getNamespace()), new MetricLabel("router", routerStatus.getId())));
+                    if (routerStatus.getUndelivered() != null) {
+                        totalUndelivered += routerStatus.getUndelivered();
+                        routerMeshUndelivered.add(new MetricValue(routerStatus.getUndelivered(), new MetricLabel("name", addressSpace.getMetadata().getName()), new MetricLabel("namespace", addressSpace.getMetadata().getNamespace()), new MetricLabel("router", routerStatus.getId())));
+                    }
                 }
 
                 routerMeshNotConnected.add(new MetricValue(totalNotConnected, new MetricLabel("name", addressSpace.getMetadata().getName()), new MetricLabel("namespace", addressSpace.getMetadata().getNamespace())));

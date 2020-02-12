@@ -37,7 +37,7 @@ public class AddressSpaceStatusRouter extends AbstractWithAdditionalProperties {
         @NotNull
         private String id;
 
-        private Integer undelivered;
+        private Long undelivered;
 
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         private List<String> neighbours = new ArrayList<>();
@@ -50,11 +50,11 @@ public class AddressSpaceStatusRouter extends AbstractWithAdditionalProperties {
                 this.id = id;
         }
 
-        public Integer getUndelivered() {
+        public Long getUndelivered() {
                 return undelivered;
         }
 
-        public void setUndelivered(Integer undelivered) {
+        public void setUndelivered(Long undelivered) {
                 this.undelivered = undelivered;
         }
 

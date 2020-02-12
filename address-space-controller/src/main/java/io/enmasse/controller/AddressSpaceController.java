@@ -119,6 +119,9 @@ public class AddressSpaceController {
         KeycloakRealmApi keycloakRealmApi = new KeycloakRealmApi(keycloakFactory, clock, Duration.ZERO);
         schemaProvider.registerListener(newSchema -> keycloakRealmApi.retainAuthenticationServices(newSchema.findAuthenticationServiceType(AuthenticationServiceType.standard)));
 
+        RouterStatusCache routerStatusCache = new RouterStatusCache(eventLogger, options.getRouterStatusCheckInterval(), controllerClient, controllerClient.getNamespace(), options.getManagementConnectTimeout(), options.getManagementQueryTimeout());
+        routerStatusCache.start();
+
         Metrics metrics = new Metrics();
         controllerChain = new ControllerChain(addressSpaceApi, schemaProvider, eventLogger, options.getRecheckInterval(), options.getResyncInterval());
         controllerChain.addController(new DefaultsController(authenticationServiceRegistry));
@@ -131,8 +134,8 @@ public class AddressSpaceController {
         controllerChain.addController(new PodDisruptionBudgetController(controllerClient, controllerClient.getNamespace()));
         controllerChain.addController(new RealmController(keycloakRealmApi, authenticationServiceRegistry));
         controllerChain.addController(new NetworkPolicyController(controllerClient));
-        controllerChain.addController(new StatusController(kubernetes, schemaProvider, infraResourceFactory, authenticationServiceRegistry, keycloakRealmApi,
-                new RouterStatusController(controllerClient, controllerClient.getNamespace(), options)));
+        controllerChain.addController(new StatusController(kubernetes, schemaProvider, infraResourceFactory, authenticationServiceRegistry, keycloakRealmApi, routerStatusCache));
+        controllerChain.addController(routerStatusCache);
         controllerChain.addController(new EndpointController(controllerClient, options.isExposeEndpointsByDefault(), isOpenShift));
         controllerChain.addController(new ExportsController(controllerClient));
         controllerChain.addController(authController);

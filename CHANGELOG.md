@@ -24,6 +24,7 @@
 
 * #3673: Add support for pod disruption budgets
 * #3764: validate the topic refenced by a subscription actually exists
+* #3867: Add addition checks for router mesh status
 
 ## 0.30.2
 *  #2714: Allow setting security context of pods using persistent volumes

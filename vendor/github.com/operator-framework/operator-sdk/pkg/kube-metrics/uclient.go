@@ -17,6 +17,7 @@ package kubemetrics
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -29,17 +30,17 @@ import (
 func newClientForGVK(cfg *rest.Config, apiVersion, kind string) (dynamic.NamespaceableResourceInterface, error) {
 	apiResourceList, apiResource, err := getAPIResource(cfg, apiVersion, kind)
 	if err != nil {
-		return nil, fmt.Errorf("discovering resource information failed for %s in %s: %w", kind, apiVersion, err)
+		return nil, errors.Wrapf(err, "discovering resource information failed for %s in %s", kind, apiVersion)
 	}
 
 	dc, err := newForConfig(cfg, apiResourceList.GroupVersion)
 	if err != nil {
-		return nil, fmt.Errorf("creating dynamic client failed for %s: %w", apiResourceList.GroupVersion, err)
+		return nil, errors.Wrapf(err, "creating dynamic client failed for %s", apiResourceList.GroupVersion)
 	}
 
 	gv, err := schema.ParseGroupVersion(apiResourceList.GroupVersion)
 	if err != nil {
-		return nil, fmt.Errorf("parsing GroupVersion %s failed: %w", apiResourceList.GroupVersion, err)
+		return nil, errors.Wrapf(err, "parsing GroupVersion %s failed", apiResourceList.GroupVersion)
 	}
 
 	gvr := schema.GroupVersionResource{
@@ -96,6 +97,6 @@ func setConfigDefaults(groupVersion string, config *rest.Config) error {
 	if config.GroupVersion.Group == "" && config.GroupVersion.Version == "v1" {
 		config.APIPath = "/api"
 	}
-	config.NegotiatedSerializer = serializer.WithoutConversionCodecFactory{CodecFactory: scheme.Codecs}
+	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
 	return nil
 }

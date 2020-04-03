@@ -32,6 +32,8 @@ import (
 
 var log = logf.Log.WithName("metrics")
 
+var trueVar = true
+
 const (
 	// OperatorPortName defines the default operator metrics port name used in the metrics Service.
 	OperatorPortName = "http-metrics"
@@ -47,7 +49,7 @@ func CreateMetricsService(ctx context.Context, cfg *rest.Config, servicePorts []
 	}
 	client, err := crclient.New(cfg, crclient.Options{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new client: %w", err)
+		return nil, fmt.Errorf("failed to create new client: %v", err)
 	}
 	s, err := initOperatorService(ctx, client, servicePorts)
 	if err != nil {
@@ -55,11 +57,11 @@ func CreateMetricsService(ctx context.Context, cfg *rest.Config, servicePorts []
 			log.Info("Skipping metrics Service creation; not running in a cluster.")
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to initialize service object for metrics: %w", err)
+		return nil, fmt.Errorf("failed to initialize service object for metrics: %v", err)
 	}
 	service, err := createOrUpdateService(ctx, client, s)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create or get service for metrics: %w", err)
+		return nil, fmt.Errorf("failed to create or get service for metrics: %v", err)
 	}
 
 	return service, nil
@@ -77,9 +79,6 @@ func createOrUpdateService(ctx context.Context, client crclient.Client, s *v1.Se
 			Name:      s.Name,
 			Namespace: s.Namespace,
 		}, existingService)
-		if err != nil {
-			return nil, err
-		}
 
 		s.ResourceVersion = existingService.ResourceVersion
 		if existingService.Spec.Type == v1.ServiceTypeClusterIP {

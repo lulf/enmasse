@@ -36,26 +36,43 @@ require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/Nerzal/gocloak/v3 v3.7.0
 	github.com/alexedwards/scs/v2 v2.2.0
-	github.com/coreos/prometheus-operator v0.34.0
+	github.com/coreos/prometheus-operator v0.30.0
+	github.com/emicklei/go-restful v2.11.1+incompatible // indirect
+	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.1.0
+	github.com/go-openapi/jsonreference v0.19.3 // indirect
+	github.com/go-openapi/spec v0.19.4 // indirect
+	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/google/go-cmp v0.3.2-0.20191216211814-5a6f75716e12 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/consul/api v1.3.0 // indirect
 	github.com/hashicorp/go-memdb v1.0.4
+	github.com/hashicorp/golang-lru v0.5.3 // indirect
+	github.com/imdario/mergo v0.3.8 // indirect
+	github.com/mailru/easyjson v0.7.0 // indirect
+	github.com/onsi/ginkgo v1.10.1 // indirect
+	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	// release-4.2
 	github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
-	github.com/operator-framework/operator-sdk v0.15.1
+	github.com/operator-framework/operator-sdk v0.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.2.1
-	github.com/prometheus/prometheus v2.15.2+incompatible
+	github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/vektah/gqlparser v1.2.0
 	go.uber.org/multierr v1.1.0
 	go.uber.org/zap v1.10.0
+	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152 // indirect
+	golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934 // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	google.golang.org/appengine v1.6.5 // indirect
+	google.golang.org/genproto v0.0.0-20191028173616-919d9bdd9fe6 // indirect
+	google.golang.org/grpc v1.24.0 // indirect
 	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.17.1
 	k8s.io/apimachinery v0.17.1
@@ -63,6 +80,7 @@ require (
 	k8s.io/code-generator v0.17.1
 	k8s.io/klog v1.0.0
 	k8s.io/kube-aggregator v0.0.0
+	k8s.io/utils v0.0.0-20191010214722-8d271d903fe4 // indirect
 	pack.ag/amqp v0.12.6
 	sigs.k8s.io/controller-runtime v0.4.0
 )

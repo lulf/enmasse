@@ -53,12 +53,18 @@ type MessagingAddressSpecMulticast struct {
 }
 
 type MessagingAddressSpecQueue struct {
+	// Dead letter queue address (must be address with type deadLetter)
+	DeadLetterQueue string `json:"deadLetterQueue,omitempty"`
+	// Expiry queue address (must be address with type deadLetter)
+	ExpiryQueue string `json:"expiryQueue,omitempty"`
 }
 
 type MessagingAddressSpecTopic struct {
 }
 
 type MessagingAddressSpecSubscription struct {
+	// Topic address this subscription should be subscribed to.
+	Topic string `json:"topic"`
 }
 
 type MessagingAddressSpecDeadLetter struct {

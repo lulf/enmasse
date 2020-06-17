@@ -185,6 +185,7 @@ class InfraTestStandard extends InfraTestBase implements ITestIsolatedStandard {
 
         try (ExternalMessagingClient client = new ExternalMessagingClient()
                 .withClientEngine(new ProtonJMSClientSender())
+                .withCredentials(exampleUser)
                 .withMessagingRoute(Objects.requireNonNull(AddressSpaceUtils.getInternalEndpointByName(exampleAddressSpace, "messaging", "amqps")))
                 .withCount(5)
                 .withAddress(exampleAddress)) {
@@ -250,6 +251,7 @@ class InfraTestStandard extends InfraTestBase implements ITestIsolatedStandard {
 
         try (ExternalMessagingClient client = new ExternalMessagingClient()
                 .withClientEngine(new ProtonJMSClientReceiver())
+                .withCredentials(exampleUser)
                 .withMessagingRoute(Objects.requireNonNull(AddressSpaceUtils.getInternalEndpointByName(exampleAddressSpace, "messaging", "amqps")))
                 .withCount(5)
                 .withAddress(exampleAddress)) {
